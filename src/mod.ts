@@ -3,19 +3,19 @@ export const RUNTIME_TAG = "deno_slack_runtime@0.0.3";
 
 export const projectScripts = () => {
   return {
-    "manifest": {
+    "get-manifest": {
       "script": {
         "default":
           `deno run -q --unstable --import-map=import_map.json --allow-read --allow-net https://deno.land/x/${BUILDER_TAG}/mod.ts --manifest`,
       },
     },
-    "package": {
+    "build": {
       "script": {
         "default":
           `deno run -q --unstable --import-map=import_map.json --allow-read --allow-write --allow-net https://deno.land/x/${BUILDER_TAG}/mod.ts`,
       },
     },
-    "run": {
+    "start": {
       "script": {
         "default":
           `deno run -q --unstable --import-map=import_map.json --allow-read --allow-net https://deno.land/x/${RUNTIME_TAG}/mod.ts`,
