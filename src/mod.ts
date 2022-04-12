@@ -3,6 +3,7 @@ export const RUNTIME_TAG = "deno_slack_runtime@0.0.4";
 
 export const projectScripts = () => {
   return {
+    "runtime": "deno",
     "hooks": {
       "get-manifest":
         `deno run -q --unstable --import-map=import_map.json --allow-read --allow-net https://deno.land/x/${BUILDER_TAG}/mod.ts --manifest`,
