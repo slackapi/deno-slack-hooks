@@ -14,7 +14,7 @@ export const projectScripts = () => {
     },
     "config": {
       "watch": {
-        "filter_regex": "^manifest\\.(ts|js|json)$",
+        "filter-regex": "^manifest\\.(ts|js|json)$",
         "paths": ["."],
       },
     },
