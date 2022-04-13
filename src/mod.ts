@@ -6,11 +6,11 @@ export const projectScripts = () => {
     "runtime": "deno",
     "hooks": {
       "get-manifest":
-        `deno run -q --unstable --import-map=import_map.json --allow-read --allow-net https://deno.land/x/${BUILDER_TAG}/mod.ts --manifest`,
+        `deno run -q --unstable --config=deno.jsonc --allow-read --allow-net https://deno.land/x/${BUILDER_TAG}/mod.ts --manifest`,
       "build":
-        `deno run -q --unstable --import-map=import_map.json --allow-read --allow-write --allow-net https://deno.land/x/${BUILDER_TAG}/mod.ts`,
+        `deno run -q --unstable --config=deno.jsonc --allow-read --allow-write --allow-net https://deno.land/x/${BUILDER_TAG}/mod.ts`,
       "start":
-        `deno run -q --unstable --import-map=import_map.json --allow-read --allow-net https://deno.land/x/${RUNTIME_TAG}/local-run.ts`,
+        `deno run -q --unstable --config=deno.jsonc --allow-read --allow-net https://deno.land/x/${RUNTIME_TAG}/local-run.ts`,
     },
     "config": {
       "watch": {
