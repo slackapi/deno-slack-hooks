@@ -1,4 +1,4 @@
-export const BUILDER_TAG = "deno_slack_builder@0.0.9";
+export const BUILDER_TAG = "deno_slack_builder@0.0.10";
 export const RUNTIME_TAG = "deno_slack_runtime@0.0.6";
 
 export const projectScripts = () => {
