@@ -1,26 +1,21 @@
-import { BUILDER_TAG, HOOKS_TAG, RUNTIME_TAG } from "./deps.ts";
+export const BUILDER_TAG = "deno_slack_builder@0.0.10";
+export const RUNTIME_TAG = "deno_slack_runtime@0.0.6";
+export const HOOKS_TAG = "deno_slack_hooks@0.0.1";
 
 export const projectScripts = () => {
   return {
-    "manifest": {
-      "script": {
-        "default":
-          `deno run -q --unstable --import-map=import_map.json --allow-read --allow-net https://deno.land/x/${BUILDER_TAG}/mod.ts --manifest`,
-      },
+    "runtime": "deno",
+    "hooks": {
+      "get-manifest":
+        `deno run -q --unstable --config=deno.jsonc --allow-read --allow-net https://deno.land/x/${BUILDER_TAG}/mod.ts --manifest`,
+      "build":
+        `deno run -q --unstable --config=deno.jsonc --allow-read --allow-write --allow-net https://deno.land/x/${BUILDER_TAG}/mod.ts`,
+      "start":
+        `deno run -q --unstable --config=deno.jsonc --allow-read --allow-net https://deno.land/x/${RUNTIME_TAG}/local-run.ts`,
     },
-    "package": {
-      "script": {
-        "default":
-          `deno run -q --unstable --import-map=import_map.json --allow-read --allow-write --allow-net https://deno.land/x/${BUILDER_TAG}/mod.ts`,
-      },
-    },
-    "run": {
-      "script": {
-        "default":
-          `deno run -q --unstable --import-map=import_map.json --allow-read --allow-net https://deno.land/x/${RUNTIME_TAG}/mod.ts`,
-      },
-      "watcher": {
-        "filter_regex": "^manifest\\.(ts|js|json)$",
+    "config": {
+      "watch": {
+        "filter-regex": "^manifest\\.(ts|js|json)$",
         "paths": ["."],
       },
     },
