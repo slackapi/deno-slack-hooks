@@ -27,8 +27,10 @@ export const projectScripts = () => {
     "check-update": {
       "script": {
         "default":
-          `deno run -q --unstable --import-map=import_map.json --allow-read --allow-net https://deno.land/x/${HOOKS_TAG}/check_update.ts`,
+          // `deno run -q --unstable --import-map=import_map.json --allow-read --allow-net https://deno.land/x/${HOOKS_TAG}/check_update.ts`,
+          `deno run -q --unstable --import-map=import_map.json --allow-read --allow-net https://deno.land/x/${HOOKS_TAG}/mod.ts --check-update`,
       },
+      // TODO :: ask deno sdk team how they'd like check-update to pull information
     },
   };
 };
