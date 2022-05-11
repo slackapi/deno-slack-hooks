@@ -51,7 +51,7 @@ async function createVersionMap() {
   for (const [sdk, value] of Object.entries(versionMap)) {
     if (value) {
       const current = versionMap[sdk].current;
-      let latest = "", error = null;
+      let latest = "", error = "";
 
       try {
         latest = await fetchLatestModuleVersion(sdk);
@@ -59,7 +59,7 @@ async function createVersionMap() {
         error = err;
       }
 
-      const update = current !== latest;
+      const update = !!current && current !== latest;
       const breaking = hasBreakingChange(current, latest);
 
       versionMap[sdk] = {
@@ -123,7 +123,11 @@ async function readProjectDependencies(): Promise<VersionMap> {
 }
 
 async function getJson(file: string) {
-  return JSON.parse(await Deno.readTextFile(file));
+  try {
+    return JSON.parse(await Deno.readTextFile(file));
+  } catch (_) {
+    return {};
+  }
 }
 
 /** fetchLatestModuleVersion makes a call to deno.land with the
@@ -144,6 +148,10 @@ async function fetchLatestModuleVersion(moduleName: string): Promise<string> {
 
 function extractVersion(str: string) {
   const at = str.indexOf("@");
+
+  // Doesn't contain an @ version
+  if (at === -1) return "";
+
   const slash = str.indexOf("/", at);
   const version = slash < at
     ? str.substring(at + 1)
@@ -240,7 +248,7 @@ function createUpdateResp(versionMap: VersionMap): UpdateResponse {
 
   // Add reference to Release Notes
   message +=
-    `  To manually update, read the release notes at:\n  ${bold}${blue}https://api.slack.com/future/tools/sdk/changelog${reset}`;
+    `  To manually update, read the release notes at:\n  ${bold}${blue}https://api.slack.com/future/changelog${reset}`;
 
   return { update, breaking, message, error: { message: errorMsg } };
 }
