@@ -1,4 +1,4 @@
-import { BUILDER_TAG, HOOKS_TAG, RUNTIME_TAG } from "./deps.ts";
+import { BUILDER_TAG, HOOKS_TAG, RUNTIME_TAG } from "./mod.ts";
 
 const DENO_SLACK_SDK = "deno_slack_sdk";
 const DENO_SLACK_API = "deno_slack_api";
@@ -12,23 +12,24 @@ const SLACK_JSON_SDKS = [
   DENO_SLACK_RUNTIME,
 ];
 
-type UpdateResponse = {
+interface UpdateResponse {
   update: boolean;
   breaking: boolean;
   message: string;
-  error: string;
-};
+  error: {
+    message: string;
+  };
+}
 
-type VersionMap = {
+interface VersionMap {
   [key: string]: {
     current: string;
     latest: string;
     update: boolean;
     breaking: boolean;
-    message: string;
     error: string;
   };
-};
+}
 
 export const checkForSDKUpdates = async () => {
   const versionMap: VersionMap = await createVersionMap();
@@ -36,7 +37,49 @@ export const checkForSDKUpdates = async () => {
   return updateResp;
 };
 
+/**
+ * createVersionMap creates an object that contains each dependency,
+ * featuring information about the current and latest versions, as well
+ * as if breaking changes are present and if any errors occurred during
+ * version retrieval.
+ */
 async function createVersionMap() {
+  const versionMap: VersionMap = await readProjectDependencies();
+
+  // Check each dependency for updates, classify update as breaking or not,
+  // craft message with information retrieved, and note any error that occurred.
+  for (const [sdk, value] of Object.entries(versionMap)) {
+    if (value) {
+      const current = versionMap[sdk].current;
+      let latest = "", error = null;
+
+      try {
+        latest = await fetchLatestModuleVersion(sdk);
+      } catch (err) {
+        error = err;
+      }
+
+      const update = current !== latest;
+      const breaking = hasBreakingChange(current, latest);
+
+      versionMap[sdk] = {
+        ...versionMap[sdk],
+        latest,
+        update,
+        breaking,
+        error,
+      };
+    }
+  }
+
+  return versionMap;
+}
+
+/** readProjectDependencies reads from possible dependency files
+ * (import_map.json, slack.json) and maps them to the versionMap
+ * containing each dependency's update information
+ */
+async function readProjectDependencies(): Promise<VersionMap> {
   const cwd = Deno.cwd();
   const versionMap: VersionMap = {};
 
@@ -49,7 +92,6 @@ async function createVersionMap() {
           latest: "",
           update: false,
           breaking: false,
-          message: "",
           error: "",
           current: extractVersion(sdkUrl),
         };
@@ -70,44 +112,10 @@ async function createVersionMap() {
           latest: "",
           update: false,
           breaking: false,
-          message: "",
           error: "",
           current: extractVersion(command),
         };
       }
-    }
-  }
-
-  for (const [sdk, value] of Object.entries(versionMap)) {
-    if (value) {
-      const current = versionMap[sdk].current;
-      let message = "", latest = "", error = "";
-
-      try {
-        latest = await fetchLatestModuleVersion(sdk);
-      } catch (err) {
-        error = `Unable to fetch the latest version.`;
-      }
-
-      if (sdk === "deno_slack_sdk") {
-        error = `Unable to fetch the latest version.`;
-      }
-
-      const update = current !== latest;
-      const breaking = hasBreakingChange(current, latest);
-
-      if (update) {
-        message = createSDKUpdateMessage(sdk, breaking, current, latest, error);
-      }
-
-      versionMap[sdk] = {
-        ...versionMap[sdk],
-        latest,
-        update,
-        breaking,
-        message,
-        error,
-      };
     }
   }
 
@@ -118,7 +126,10 @@ async function getJson(file: string) {
   return JSON.parse(await Deno.readTextFile(file));
 }
 
-async function fetchLatestModuleVersion(moduleName: string) {
+/** fetchLatestModuleVersion makes a call to deno.land with the
+ * module name and returns the extracted version number, if found
+ */
+async function fetchLatestModuleVersion(moduleName: string): Promise<string> {
   const res = await fetch(`https://deno.land/x/${moduleName}`, {
     redirect: "manual",
   });
@@ -140,20 +151,30 @@ function extractVersion(str: string) {
   return version;
 }
 
-function createSDKUpdateMessage(
+/** createDependencyMsg  creates a terminal-friendly display message
+ * that features the name of the dependency, current and latest versions,
+ * and visual indication if the change is breaking or an error occurred:
+ *
+ * › deno_slack_sdk
+ *   0.0.3 → 0.0.4
+ */
+function createDependencyMsg(
   sdk: string,
   breaking: boolean,
   current: string,
   latest: string,
   error: string,
 ): string {
-  if (sdk === "deno_slack_hooks") breaking = true;
-  const red = "\x1b[31m",
-    green = "\x1b[32m",
-    reset = "\x1b[0m",
-    bold = "\x1b[1m";
+  const red = "\x1b[31m";
+  const yellow = "\x1b[38;5;214m";
+  const blue = "\x1b[38;5;39m";
+  const grey = "\x1b[38;5;243m";
+  const reset = "\x1b[0m";
+  const bold = "\x1b[1m";
+
+  // Standard dependency information message
   let message =
-    `  › ${bold}${sdk}${reset}\n    ${current} → ${bold}${green}${latest}\n\n${reset}`;
+    `  › ${bold}${sdk}${reset}\n    ${grey}${current}${reset} → ${bold}${blue}${latest}\n\n${reset}`;
 
   // An error occurred while fetching the dependency information
   if (error) {
@@ -165,44 +186,63 @@ function createSDKUpdateMessage(
   // Dependency contains a breaking change
   if (breaking) {
     message =
-      `  › ${bold}${sdk}${reset}\n    ${current} → ${bold}${red}${latest} (breaking)\n\n${reset}`;
+      `  › ${bold}${sdk}${reset}\n    ${grey}${current}${reset} → ${bold}${yellow}${latest} (breaking)\n\n${reset}`;
   }
 
   return message;
 }
 
-function hasBreakingChange(current: string, latest: string) {
+/**
+ * hasBreakingChange determines whether or not there is a
+ * major version difference of greater or equal to 1 between the current
+ * and latest version.
+ */
+function hasBreakingChange(current: string, latest: string): boolean {
   const currMajor = current.split(".")[0];
   const latestMajor = latest.split(".")[0];
   return +latestMajor - +currMajor >= 1;
 }
 
+/**
+ * createUpdateResp creates and returns an UpdateResponse object
+ * that contains a summary of the dependency updates in the shape
+ * that the Slack CLI is expecting and able to consume
+ */
 function createUpdateResp(versionMap: VersionMap): UpdateResponse {
-  const bold = "\x1b[1m", reset = "\x1b[0m";
-  let message = `${bold}  The following SDK updates are available:${reset}\n\n`;
-  let error = "";
-  let update = true;
+  const bold = "\x1b[1m";
+  const reset = "\x1b[0m";
+  const blue = "\x1b[38;5;39m";
+
+  let message = "";
+  let update = false;
+  let errorMsg = "";
   let breaking = false;
 
-  for (const [sdk, value] of Object.entries(versionMap)) {
-    if (value) {
-      message += value["message"];
-      if (value.breaking) breaking = true;
-      if (value.error) {
-        error += error
+  // Output information for each dependency
+  for (const [sdk, s] of Object.entries(versionMap)) {
+    if (s && s.update) {
+      update = true;
+      message += createDependencyMsg(
+        sdk,
+        s.breaking,
+        s.current,
+        s.latest,
+        s.error,
+      );
+      if (s.breaking) breaking = true;
+      if (s.error) {
+        errorMsg += errorMsg
           ? `, ${sdk}`
-          : `There was a problem retrieving the following updates: ${sdk}`;
+          : `An error occurred while retrieving updates for the following packages: ${sdk}`;
       }
     }
   }
 
-  if (breaking) {
-    const breakWarning =
-      `🛑 Breaking changes in the new version of the SDK.\n  Follow the steps in the release notes to update your app.\n\n`;
-    message = breakWarning + message;
-  }
+  // Add reference to Release Notes
+  message +=
+    `  To manually update, read the release notes at:\n  ${bold}${blue}https://api.slack.com/future/tools/sdk/changelog${reset}`;
 
-  return { update, breaking, message, error };
+  return { update, breaking, message, error: { message: errorMsg } };
 }
 
 if (import.meta.main) {
