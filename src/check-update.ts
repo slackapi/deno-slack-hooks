@@ -221,18 +221,18 @@ function createUpdateResp(versionMap: VersionMap): UpdateResponse {
   let breaking = false;
 
   // Output information for each dependency
-  for (const [sdk, s] of Object.entries(versionMap)) {
-    if (s && s.update) {
+  for (const [sdk, value] of Object.entries(versionMap)) {
+    if (value && value.update) {
       update = true;
       message += createDependencyMsg(
         sdk,
-        s.breaking,
-        s.current,
-        s.latest,
-        s.error,
+        value.breaking,
+        value.current,
+        value.latest,
+        value.error,
       );
-      if (s.breaking) breaking = true;
-      if (s.error) {
+      if (value.breaking) breaking = true;
+      if (value.error) {
         errorMsg += errorMsg
           ? `, ${sdk}`
           : `An error occurred while retrieving updates for the following packages: ${sdk}`;
