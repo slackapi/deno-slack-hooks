@@ -1,6 +1,4 @@
-export const BUILDER_TAG = "deno_slack_builder@0.0.10";
-export const RUNTIME_TAG = "deno_slack_runtime@0.0.6";
-export const HOOKS_TAG = "deno_slack_hooks@0.0.1";
+import { BUILDER_TAG, RUNTIME_TAG, HOOKS_TAG } from "./libraries.ts";
 
 export const projectScripts = () => {
   return {

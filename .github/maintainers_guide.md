@@ -37,8 +37,8 @@ Releasing can feel intimidating at first, but rest assured: if you make a mistak
 
 1. Make sure your local `main` branch has the latest changes.
 2. Run the tests as per the above Testing section, and any other local verification, such as:
-  - Local integration tests between the Slack CLI, deno-sdk-based application template(s) and this repo. One can modify a deno-sdk-based app project's `slack.json` file to point the `get-hooks` hook to a local version of this repo rather than the deno.land-hosted version. 
-3. Bump the version number for this repo in adherence to [Semantic Versioning](http://semver.org/) in `src/mod.ts`, specifically the `HOOKS_TAG` constant near the top of `mod.ts`.
+  - Local integration tests between the Slack CLI, deno-sdk-based application template(s) and this repo. One can modify a deno-sdk-based app project's `slack.json` file to point the `get-hooks` hook to a local version of this repo rather than the deno.land-hosted version.
+3. Bump the version number for this repo in adherence to [Semantic Versioning](http://semver.org/) in `src/libraries.ts`, specifically the `VERSIONS` map's `DENO_SLACK_HOOKS` key.
   - Make a single commit with a message for the version bump.
 4. Tag the version commit with a tag matching the version number. I.e. if you are releasing version 1.2.3 of this repo, then the git tag should be `1.2.3`.
   - This can be done with the command: `git tag 1.2.3`

@@ -1,8 +1,5 @@
-import { HOOKS_TAG } from "./mod.ts";
+import { DENO_SLACK_HOOKS, DENO_SLACK_SDK, DENO_SLACK_API } from "./libraries.ts";
 
-const DENO_SLACK_SDK = "deno_slack_sdk";
-const DENO_SLACK_API = "deno_slack_api";
-const DENO_SLACK_HOOKS = HOOKS_TAG.substring(0, HOOKS_TAG.indexOf("@"));
 const IMPORT_MAP_SDKS = [DENO_SLACK_SDK, DENO_SLACK_API];
 const SLACK_JSON_SDKS = [
   DENO_SLACK_HOOKS, // should be the only one needed now that the get-hooks hook is supported
