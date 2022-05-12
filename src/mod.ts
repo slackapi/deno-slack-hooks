@@ -1,4 +1,4 @@
-import { BUILDER_TAG, RUNTIME_TAG, HOOKS_TAG } from "./libraries.ts";
+import { BUILDER_TAG, HOOKS_TAG, RUNTIME_TAG } from "./libraries.ts";
 
 export const projectScripts = () => {
   return {

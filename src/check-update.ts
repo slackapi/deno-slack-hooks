@@ -1,4 +1,8 @@
-import { DENO_SLACK_HOOKS, DENO_SLACK_SDK, DENO_SLACK_API } from "./libraries.ts";
+import {
+  DENO_SLACK_API,
+  DENO_SLACK_HOOKS,
+  DENO_SLACK_SDK,
+} from "./libraries.ts";
 
 const IMPORT_MAP_SDKS = [DENO_SLACK_SDK, DENO_SLACK_API];
 const SLACK_JSON_SDKS = [
