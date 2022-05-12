@@ -1,15 +1,11 @@
-import { BUILDER_TAG, HOOKS_TAG, RUNTIME_TAG } from "./mod.ts";
+import { HOOKS_TAG } from "./mod.ts";
 
 const DENO_SLACK_SDK = "deno_slack_sdk";
 const DENO_SLACK_API = "deno_slack_api";
 const DENO_SLACK_HOOKS = HOOKS_TAG.substring(0, HOOKS_TAG.indexOf("@"));
-const DENO_SLACK_BUILDER = BUILDER_TAG.substring(0, BUILDER_TAG.indexOf("@"));
-const DENO_SLACK_RUNTIME = RUNTIME_TAG.substring(0, RUNTIME_TAG.indexOf("@"));
 const IMPORT_MAP_SDKS = [DENO_SLACK_SDK, DENO_SLACK_API];
 const SLACK_JSON_SDKS = [
-  DENO_SLACK_HOOKS, // should be the only one needed once the get-scripts hook is supported
-  DENO_SLACK_BUILDER, // but just in case, we can look for builder and runtime as well!
-  DENO_SLACK_RUNTIME,
+  DENO_SLACK_HOOKS, // should be the only one needed now that the get-hooks hook is supported
 ];
 
 interface UpdateResponse {
@@ -104,8 +100,6 @@ async function readProjectDependencies(): Promise<VersionMap> {
     `${cwd}/slack.json`,
   );
   for (const command of Object.values(hooks)) {
-    // TODO :: Does not cover the case where multiple commands use the same SDK.
-    // Only the "last" key containing the relevant SDK will be checked as-is
     for (const sdk of SLACK_JSON_SDKS) {
       if (command.includes(sdk)) {
         versionMap[sdk] = {
