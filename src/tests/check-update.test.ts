@@ -42,7 +42,7 @@ Deno.test("check-update hook tests", async (t) => {
     await evT.step(
       "should throw if location header is not returned",
       async () => {
-        mf.mock("GET@/x/slack", async (req: Request) => {
+        mf.mock("GET@/x/slack", (_req: Request) => {
           return new Response(null, { headers: {} });
         });
         await assertRejects(async () => {
@@ -53,7 +53,7 @@ Deno.test("check-update hook tests", async (t) => {
     await evT.step(
       "should return version extracted from location header",
       async () => {
-        mf.mock("GET@/x/slack", async (req: Request) => {
+        mf.mock("GET@/x/slack", (_req: Request) => {
           return new Response(null, {
             headers: { location: "/x/slack@0.1.1" },
           });
