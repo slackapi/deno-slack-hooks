@@ -13,7 +13,7 @@ export const projectScripts = () => {
       "start":
         `deno run -q --unstable --config=deno.jsonc --allow-read --allow-net https://deno.land/x/${RUNTIME_TAG}/local-run.ts`,
       "check-update":
-        `deno run -q --unstable --config=deno.jsonc --allow-read --allow-net https://deno.land/x/${HOOKS_TAG}/check_update.ts`,
+        `deno run -q --unstable --config=deno.jsonc --allow-read --allow-net https://deno.land/x/${HOOKS_TAG}/check-update.ts`,
     },
     "config": {
       "watch": {
