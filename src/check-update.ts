@@ -127,7 +127,9 @@ async function getJson(file: string) {
 /** fetchLatestModuleVersion makes a call to deno.land with the
  * module name and returns the extracted version number, if found
  */
-export async function fetchLatestModuleVersion(moduleName: string): Promise<string> {
+export async function fetchLatestModuleVersion(
+  moduleName: string,
+): Promise<string> {
   const res = await fetch(`https://deno.land/x/${moduleName}`, {
     redirect: "manual",
   });
