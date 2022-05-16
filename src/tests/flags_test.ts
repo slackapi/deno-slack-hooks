@@ -1,4 +1,4 @@
-import { assertEquals, assertRejects } from "../dev_deps.ts";
+import { assertEquals } from "../dev_deps.ts";
 import { getStartHookAdditionalFlags } from "../flags.ts";
 
 Deno.test("getStartHookAdditionalFlags sets certificate validation flag, with =", () => {
