@@ -1,7 +1,10 @@
+import { getStartHookAdditionalFlags } from "./flags.ts";
+
 export const BUILDER_TAG = "deno_slack_builder@0.0.10";
 export const RUNTIME_TAG = "deno_slack_runtime@0.0.6";
 
-export const projectScripts = () => {
+export const projectScripts = (args: string[]) => {
+  const startHookFlags = getStartHookAdditionalFlags(args);
   return {
     "runtime": "deno",
     "hooks": {
@@ -10,7 +13,7 @@ export const projectScripts = () => {
       "build":
         `deno run -q --unstable --config=deno.jsonc --allow-read --allow-write --allow-net https://deno.land/x/${BUILDER_TAG}/mod.ts`,
       "start":
-        `deno run -q --unstable --config=deno.jsonc --allow-read --allow-net https://deno.land/x/${RUNTIME_TAG}/local-run.ts`,
+        `deno run -q --unstable --config=deno.jsonc --allow-read --allow-net ${startHookFlags} https://deno.land/x/${RUNTIME_TAG}/local-run.ts`,
     },
     "config": {
       "watch": {
@@ -22,5 +25,5 @@ export const projectScripts = () => {
 };
 
 if (import.meta.main) {
-  console.log(JSON.stringify(projectScripts()));
+  console.log(JSON.stringify(projectScripts(Deno.args)));
 }
