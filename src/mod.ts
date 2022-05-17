@@ -1,10 +1,10 @@
-import { getStartHookAdditionalFlags } from "./flags.ts";
+import { getStartHookAdditionalDenoFlags } from "./flags.ts";
 
 export const BUILDER_TAG = "deno_slack_builder@0.0.10";
 export const RUNTIME_TAG = "deno_slack_runtime@0.0.6";
 
 export const projectScripts = (args: string[]) => {
-  const startHookFlags = getStartHookAdditionalFlags(args);
+  const startHookFlags = getStartHookAdditionalDenoFlags(args);
   return {
     "runtime": "deno",
     "hooks": {
