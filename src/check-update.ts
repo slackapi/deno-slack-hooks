@@ -10,11 +10,11 @@ const SLACK_JSON_SDKS = [
 ];
 
 interface UpdateResponse {
-  update: boolean;
-  breaking: boolean;
-  message: string;
+  name: string;
   releases: Release[];
-  error: {
+  message?: string;
+  url?: string;
+  error?: {
     message: string;
   };
 }
@@ -24,11 +24,14 @@ interface VersionMap {
 }
 
 interface Release {
-  current: string;
-  latest: string;
-  update: boolean;
-  breaking: boolean;
-  error: {
+  name: string;
+  current?: string;
+  latest?: string;
+  update?: boolean;
+  breaking?: boolean;
+  message?: string;
+  url?: string;
+  error?: {
     message: string;
   };
 }
@@ -52,8 +55,8 @@ async function createVersionMap() {
   // craft message with information retrieved, and note any error that occurred.
   for (const [sdk, value] of Object.entries(versionMap)) {
     if (value) {
-      const current = versionMap[sdk].current;
-      let latest = "", error = "";
+      const current = versionMap[sdk].current || "";
+      let latest = "", error = null;
 
       try {
         latest = await fetchLatestModuleVersion(sdk);
@@ -69,7 +72,7 @@ async function createVersionMap() {
         latest,
         update,
         breaking,
-        error: { message: error },
+        error,
       };
     }
   }
@@ -91,10 +94,7 @@ async function readProjectDependencies(): Promise<VersionMap> {
     for (const sdk of IMPORT_MAP_SDKS) {
       if (sdkUrl.includes(sdk)) {
         versionMap[sdk] = {
-          latest: "",
-          update: false,
-          breaking: false,
-          error: { message: "" },
+          name: sdk,
           current: extractVersion(sdkUrl),
         };
       }
@@ -109,10 +109,7 @@ async function readProjectDependencies(): Promise<VersionMap> {
     for (const sdk of SLACK_JSON_SDKS) {
       if (command.includes(sdk)) {
         versionMap[sdk] = {
-          latest: "",
-          update: false,
-          breaking: false,
-          error: { message: "" },
+          name: sdk,
           current: extractVersion(command),
         };
       }
@@ -179,48 +176,41 @@ function hasBreakingChange(current: string, latest: string): boolean {
 
 /**
  * createUpdateResp creates and returns an UpdateResponse object
- * that contains a summary of the dependency updates, as well as
- * the detail of each dependency update response, all in the shape
- * that the Slack CLI is expecting and able to consume
+ * that contains information about a collection of release dependencies
+ * in the shape of an object that the CLI expects to consume
  */
 function createUpdateResp(versionMap: VersionMap): UpdateResponse {
+  const name = "the Slack SDK";
   const releases = [];
-  const bold = "\x1b[1m";
-  const reset = "\x1b[0m";
-  const blue = "\x1b[38;5;39m";
+  const message = "";
+  const url = "https://api.slack.com/future/changelog";
+  const error = { message: "" };
 
-  let message =
-    `The Slack SDK has updates available!\n\n   To manually update, read the release notes at:\n   ${bold}${blue}https://api.slack.com/future/changelog${reset}`;
-  let update = false;
-  let breaking = false;
   let errorMsg = "";
 
   // Output information for each dependency
-  for (const [sdk, value] of Object.entries(versionMap)) {
-    // Dependency has an update or it tried to fetch update information and failed
-    if (value && (value.update || value.error.message)) {
-      releases.push({ name: sdk, ...value });
-      if (value.update) update = true;
-      if (value.breaking) breaking = true;
-      if (value.error.message) {
+  for (const sdk of Object.values(versionMap)) {
+    // Dependency has an update OR the fetch of update failed
+    if (sdk && (sdk.update || sdk.error?.message)) {
+      releases.push(sdk);
+
+      // Add the dependency that failed to be fetched to the top-level error message
+      if (sdk.error && sdk.error.message) {
         errorMsg += errorMsg
           ? `, ${sdk}`
-          : `An error occurred while retrieving updates for the following packages: ${sdk}`;
+          : `An error occurred fetching updates for the following packages: ${sdk.name}`;
       }
     }
   }
 
-  // No confirmed update, error while fetching
-  if (!update && errorMsg) {
-    message = "The Slack SDK encountered errors while checking for updates.";
-  }
+  if (errorMsg) error.message = errorMsg;
 
   return {
-    update,
-    breaking,
+    name,
     message,
     releases,
-    error: { message: errorMsg },
+    url,
+    error,
   };
 }
 
