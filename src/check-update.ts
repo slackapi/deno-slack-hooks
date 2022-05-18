@@ -16,7 +16,7 @@ interface UpdateResponse {
   url?: string;
   error?: {
     message: string;
-  };
+  } | null;
 }
 
 interface VersionMap {
@@ -33,7 +33,7 @@ interface Release {
   url?: string;
   error?: {
     message: string;
-  };
+  } | null;
 }
 
 export const checkForSDKUpdates = async () => {
@@ -184,8 +184,8 @@ function createUpdateResp(versionMap: VersionMap): UpdateResponse {
   const releases = [];
   const message = "";
   const url = "https://api.slack.com/future/changelog";
-  const error = { message: "" };
 
+  let error = null;
   let errorMsg = "";
 
   // Output information for each dependency
@@ -203,7 +203,7 @@ function createUpdateResp(versionMap: VersionMap): UpdateResponse {
     }
   }
 
-  if (errorMsg) error.message = errorMsg;
+  if (errorMsg) error = { message: errorMsg };
 
   return {
     name,
