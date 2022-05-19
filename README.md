@@ -24,3 +24,7 @@ The [Slack CLI][cli] will automatically know to pick up your local hook definiti
 This can also be used to change the flags sent to the `deno run` command if you decide to change the location of your config file, or switch to an import map instead.
 
 [cli]: https://github.com/slackapi/slack-cli
+
+## Running Tests
+
+Tests can be run locally via `deno task test`. This will run unit tests as well as check formatting and linting.
