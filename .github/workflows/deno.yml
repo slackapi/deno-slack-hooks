@@ -35,5 +35,5 @@ jobs:
       - name: Run linter
         run: deno lint ./src
       # Once we have tests we can uncomment the below
-      #- name: Run tests
-      #run: deno test --allow-read --allow-env --coverage=.coverage && deno coverage --exclude="fixtures|test" .coverage
+      - name: Run tests
+        run: deno test --allow-read --allow-env --coverage=.coverage && deno coverage --exclude="fixtures|test" .coverage

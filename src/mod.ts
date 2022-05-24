@@ -1,7 +1,5 @@
+import { BUILDER_TAG, HOOKS_TAG, RUNTIME_TAG } from "./libraries.ts";
 import { getStartHookAdditionalDenoFlags } from "./flags.ts";
-
-export const BUILDER_TAG = "deno_slack_builder@0.0.12";
-export const RUNTIME_TAG = "deno_slack_runtime@0.0.6";
 
 export const projectScripts = (args: string[]) => {
   const startHookFlags = getStartHookAdditionalDenoFlags(args);
@@ -14,6 +12,8 @@ export const projectScripts = (args: string[]) => {
         `deno run -q --config=deno.jsonc --allow-read --allow-write --allow-net --allow-run  https://deno.land/x/${BUILDER_TAG}/mod.ts`,
       "start":
         `deno run -q --config=deno.jsonc --allow-read --allow-net ${startHookFlags} https://deno.land/x/${RUNTIME_TAG}/local-run.ts`,
+      "check-update":
+        `deno run -q --config=deno.jsonc --allow-read --allow-net https://deno.land/x/${HOOKS_TAG}/check-update.ts`,
     },
     "config": {
       "watch": {
