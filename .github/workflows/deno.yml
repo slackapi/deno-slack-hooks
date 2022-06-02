@@ -37,3 +37,6 @@ jobs:
       # Once we have tests we can uncomment the below
       - name: Run tests
         run: deno test --allow-read --allow-env --coverage=.coverage && deno coverage --exclude="fixtures|test" .coverage
+
+      - name: Check latest git tag of this repo matches version for this repo embedded in src/libraries.ts
+        run: ./scripts/enforce-consistent-version.sh
