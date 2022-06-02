@@ -14,7 +14,7 @@ Below is an example `/slack.json` file that overrides the `build` script to poin
 {
   "hooks": {
     "get-hooks": "deno run -q --allow-read --allow-net https://deno.land/x/deno_slack_hooks/mod.ts",
-    "build": "deno run -q --config=deno.jsonc --allow-read --allow-write --allow-net --allow-run /<path-to-your-local-repo>/mod.ts"
+    "build": "deno run -q --config=deno.jsonc --allow-read --allow-write --allow-net --allow-run file:///<path-to-your-local-repo>/mod.ts"
   }
 }
 ```
@@ -23,8 +23,22 @@ The [Slack CLI][cli] will automatically know to pick up your local hook definiti
 
 This can also be used to change the flags sent to the `deno run` command if you decide to change the location of your config file, or switch to an import map instead.
 
-[cli]: https://github.com/slackapi/slack-cli
-
 ## Running Tests
 
-Tests can be run locally via `deno task test`. This will run unit tests as well as check formatting and linting.
+If you make changes to this repo, or just want to make sure things are working as desired, you can run:
+
+    deno task test
+
+To get a full test coverage report, run:
+
+    deno task coverage
+
+---
+
+### Getting Help
+
+We welcome contributions from everyone! Please check out our
+[Contributor's Guide](.github/CONTRIBUTING.md) for how to contribute in a
+helpful and collaborative way.
+
+[cli]: https://github.com/slackapi/slack-cli
