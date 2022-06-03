@@ -1,12 +1,11 @@
-import { assertStringIncludes, sinon } from "../dev_deps.ts";
+import { assertStringIncludes } from "../dev_deps.ts";
+import hooksVersion from "../version.ts";
+import { projectScripts } from "../mod.ts";
 
-Deno.test("projectScripts should return a check-update hook that points to its own version", async () => {
-  const readStub = sinon.stub(Deno, "readTextFileSync").returns("1.0.0\n");
-  const mod = await import("../mod.ts");
-  const result = mod.projectScripts([]);
-  readStub.restore();
+Deno.test("projectScripts should return a check-update hook that points to its own version", () => {
+  const result = projectScripts([]);
   assertStringIncludes(
     result.hooks["check-update"],
-    "deno_slack_hooks@1.0.0/check-update.ts",
+    `deno_slack_hooks@${hooksVersion}/check-update.ts`,
   );
 });

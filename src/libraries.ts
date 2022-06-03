@@ -1,3 +1,5 @@
+import hooksVersion from "./version.ts";
+
 export const DENO_SLACK_SDK = "deno_slack_sdk";
 export const DENO_SLACK_BUILDER = "deno_slack_builder";
 export const DENO_SLACK_API = "deno_slack_api";
@@ -7,7 +9,7 @@ export const DENO_SLACK_RUNTIME = "deno_slack_runtime";
 export const VERSIONS = {
   [DENO_SLACK_BUILDER]: "0.0.12",
   [DENO_SLACK_RUNTIME]: "0.0.6",
-  [DENO_SLACK_HOOKS]: Deno.readTextFileSync("VERSION").trim(),
+  [DENO_SLACK_HOOKS]: hooksVersion,
 };
 
 export const BUILDER_TAG = `${DENO_SLACK_BUILDER}@${
