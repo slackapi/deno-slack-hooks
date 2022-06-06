@@ -4,6 +4,12 @@ This library is intended to be used in applications running on Slack's next-gene
 units of functionality encapsulated as ephemeral functions. It implements the communication contract between the
 [Slack CLI][cli] and any Slack app development SDKs.
 
+## Requirements
+
+This library requires a recent (at least 1.22) version of [deno](https://deno.land).
+
+Any invocations of this library require the `--allow-read` and `--allow-net` [deno permissions](https://deno.land/manual/getting_started/permissions).
+
 ## Script Overrides
 
 If you find yourself needing to override a hook script specified by this library, you can do so in your Slack app's `/slack.json` file! Just specify a new script for the hook in question. The hooks currently provided by this repo that can be overridden are `build`, `start`, and `get-manifest`.
