@@ -42,3 +42,4 @@ jobs:
           tag: "${{ env.TAG_NAME }}"
           name: "${{ env.TAG_NAME }}"
           generateReleaseNotes: true
+          prerelease: true
