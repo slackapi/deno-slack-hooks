@@ -37,7 +37,7 @@ Releasing can feel intimidating at first, but rest assured: if you make a mistak
   - Create a new GitHub Release (initially set to a pre-release) for the version.
   - As soon as the `git` tag lands in the repo, this will kick off an automatic deployment to deno.land for this module: https://deno.land/x/deno_slack_hooks
 6. Edit the latest generated GitHub Release from the [Releases page](https://github.com/slackapi/deno-slack-hooks/releases):
-  - Ensure the changelog notes are accurate and up-to-date.
+  - Ensure the changelog notes are human readable, accurate, and up-to-date.
   - Un-check the "This is a pre-release" checkbox once you are happy with the release notes.
   - Click "Update release."
 11. If all went well, you should see your version up on [deno.land](https://deno.land/x/deno_slack_hooks)! If it didn't work, check:
