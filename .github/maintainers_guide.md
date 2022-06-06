@@ -29,17 +29,19 @@ Releasing can feel intimidating at first, but rest assured: if you make a mistak
 1. Make sure your local `main` branch has the latest changes.
 2. Run the tests as per the above Testing section, and any other local verification, such as:
   - Local integration tests between the Slack CLI, deno-sdk-based application template(s) and this repo. One can modify a deno-sdk-based app project's `slack.json` file to point the `get-hooks` hook to a local version of this repo rather than the deno.land-hosted version.
-3. Bump the version number for this repo in adherence to [Semantic Versioning][semver] in `src/libraries.ts`, specifically the `VERSIONS` map's `DENO_SLACK_HOOKS` key.
+3. Bump the version number for this repo in adherence to [Semantic Versioning][semver] in `src/version.ts`.
   - Make a single commit with a message for the version bump.
-4. Create a new GitHub Release from the [Releases page](https://github.com/slackapi/deno-slack-hooks/releases) by clicking the "Draft a new release" button.
-5. Input a new version manually into the "Choose a tag" input. Ensure that this version adheres to [semantic versioning][semver] based on what's being released. Version tags should match the following pattern: `1.0.1` (no `v` preceding the number).
-  - After you input the new version, click the "Create a new tag: x.x.x on publish" button.
-6. Set the "Target" input to the "main" branch.
-7. Name the release title after the version tag.
-8. Auto-generate the release notes by clicking the "Auto-generate release notes" button. Review the generated release notes, make sure they are accessible and approachable and that an end-user with little context about this project could still understand.
-9. Make sure "This is a pre-release" is _not_ checked.
-10. Publish the release by clicking the "Publish release" button!
-11. After a few minutes, the corresponding version will be available on https://deno.land/x/deno_slack_hooks.
+4. Send a pull request with this change and tag @slack/HDX and/or @filmaj for review.
+5. Once approved and merged, a deployment workflow will kick off. This workflow will:
+  - Create a `git` tag matching the version string you changed in `src/version.ts`.
+  - Create a new GitHub Release (initially set to a pre-release) for the version.
+  - As soon as the `git` tag lands in the repo, this will kick off an automatic deployment to deno.land for this module: https://deno.land/x/deno_slack_hooks
+6. Edit the latest generated GitHub Release from the [Releases page](https://github.com/slackapi/deno-slack-hooks/releases):
+  - Ensure the changelog notes are accurate and up-to-date.
+  - Un-check the "This is a pre-release" checkbox once you are happy with the release notes.
+  - Click "Update release."
+11. If all went well, you should see your version up on [deno.land](https://deno.land/x/deno_slack_hooks)! If it didn't work, check:
+  - The [GitHub Actions page for the continuous deployment workflow](https://github.com/slackapi/deno-slack-hooks/actions/workflows/deno-cd.yml). Did it fail? If so, why?
 
 ## Workflow
 
