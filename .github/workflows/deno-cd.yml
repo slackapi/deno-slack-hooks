@@ -1,0 +1,45 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: Deno Continuous Deployment
+
+on:
+  push:
+    paths:
+      - 'src/version.ts'
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup repo
+        uses: actions/checkout@v2
+
+      - name: Setup Deno
+        # uses: denoland/setup-deno@v1
+        uses: denoland/setup-deno@004814556e37c54a2f6e31384c9e18e983317366
+        with:
+          deno-version: v1.x
+
+      - name: Extract Tag Name from version.ts
+        id: save_version
+        run: |
+          echo "TAG_NAME=$(deno run -q --allow-read src/version.ts)" >> $GITHUB_ENV
+          echo "We will now create the ${{ env.TAG_NAME }} tag."
+
+      - name: Create and push git tag
+        uses: rickstaa/action-create-tag@v1
+        with:
+          tag: "${{ env.TAG_NAME }}"
+
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: "${{ env.TAG_NAME }}"
+          name: "${{ env.TAG_NAME }}"
+          generateReleaseNotes: true
+          prerelease: true
