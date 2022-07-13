@@ -4,12 +4,14 @@ import {
   DENO_SLACK_SDK,
 } from "./libraries.ts";
 
+import { getJSON } from "./utilities.ts";
+
 const IMPORT_MAP_SDKS = [DENO_SLACK_SDK, DENO_SLACK_API];
 const SLACK_JSON_SDKS = [
   DENO_SLACK_HOOKS, // should be the only one needed now that the get-hooks hook is supported
 ];
 
-interface UpdateResponse {
+interface CheckUpdateResponse {
   name: string;
   releases: Release[];
   message?: string;
@@ -23,7 +25,7 @@ interface VersionMap {
   [key: string]: Release;
 }
 
-interface Release {
+export interface Release {
   name: string;
   current?: string;
   latest?: string;
@@ -89,7 +91,7 @@ async function readProjectDependencies(): Promise<VersionMap> {
   const versionMap: VersionMap = {};
 
   // Find SDK component versions in import map, if available
-  const map = await getJson(`${cwd}/import_map.json`);
+  const map = await getJSON(`${cwd}/import_map.json`);
   for (const sdkUrl of Object.values(map.imports) as string[]) {
     for (const sdk of IMPORT_MAP_SDKS) {
       if (sdkUrl.includes(sdk)) {
@@ -102,7 +104,7 @@ async function readProjectDependencies(): Promise<VersionMap> {
   }
 
   // Find SDK component versions in slack.json, if available
-  const { hooks }: { [key: string]: string } = await getJson(
+  const { hooks }: { [key: string]: string } = await getJSON(
     `${cwd}/slack.json`,
   );
   for (const command of Object.values(hooks)) {
@@ -117,19 +119,6 @@ async function readProjectDependencies(): Promise<VersionMap> {
   }
 
   return versionMap;
-}
-
-/**
- * getJson attempts to read the given file. If successful,
- * it returns an object of the contained JSON. If the extraction
- * fails, it returns an empty object.
- */
-async function getJson(file: string) {
-  try {
-    return JSON.parse(await Deno.readTextFile(file));
-  } catch (_) {
-    return {};
-  }
 }
 
 /** fetchLatestModuleVersion makes a call to deno.land with the
@@ -175,11 +164,11 @@ function hasBreakingChange(current: string, latest: string): boolean {
 }
 
 /**
- * createUpdateResp creates and returns an UpdateResponse object
+ * createUpdateResp creates and returns an CheckUpdateResponse object
  * that contains information about a collection of release dependencies
  * in the shape of an object that the CLI expects to consume
  */
-function createUpdateResp(versionMap: VersionMap): UpdateResponse {
+function createUpdateResp(versionMap: VersionMap): CheckUpdateResponse {
   const name = "the Slack SDK";
   const releases = [];
   const message = "";
