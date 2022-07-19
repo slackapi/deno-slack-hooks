@@ -41,7 +41,7 @@ const readTSFile = async (path: string) => {
     if (file && !file.default) {
       throw new Error("The Trigger Definition isn't being exported by default");
     }
-    return file;
+    return file.default;
   } catch (e) {
     throw e;
   }
