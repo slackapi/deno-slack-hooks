@@ -5,7 +5,7 @@ import {
   SDK_NAME,
   updateDependencyFile,
   updateDependencyMap,
-} from "../install-update.ts";
+} from "../install_update.ts";
 
 const MOCK_RELEASES = [
   {

@@ -1,4 +1,4 @@
-import { checkForSDKUpdates, Release } from "./check-update.ts";
+import { checkForSDKUpdates, Release } from "./check_update.ts";
 import { getJSON } from "./utilities.ts";
 import { projectScripts } from "./mod.ts";
 
