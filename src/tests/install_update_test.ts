@@ -54,45 +54,64 @@ const MOCK_IMPORT_MAP_FILE = new TextEncoder().encode(MOCK_IMPORT_MAP_JSON);
 Deno.test("update hook tests", async (t) => {
   await t.step("createUpdateResp", async (evT) => {
     await evT.step(
+      "if import_map.json and slack.json are not found, then response is an empty array",
+      async () => {
+        // Absence of prepareVirtualFile ensures that file does not exist
+        // NOTE: *must* go before .prepareVirtualFile-dependent tests below until
+        // it's clear how to "unmount" a file. Once it's there.. it's there.
+        const actual = await createUpdateResp(MOCK_RELEASES);
+        const expected = { name: SDK_NAME, updates: [] };
+
+        assertEquals(
+          actual,
+          expected,
+          `Expected: ${JSON.stringify(expected)}\n Actual: ${
+            JSON.stringify(actual)
+          }`,
+        );
+      },
+    );
+
+    await evT.step(
       "if import_map.json has available updates, then response includes those updates",
       async () => {
-        mockFile.prepareVirtualFile(
-          "./slack.json",
-          MOCK_SLACK_JSON_FILE,
-        );
-
         mockFile.prepareVirtualFile("./import_map.json", MOCK_IMPORT_MAP_FILE);
         mockFile.prepareVirtualFile("./slack.json", MOCK_SLACK_JSON_FILE);
 
         const expectedHooksUpdateSummary = [{
           name: "deno_slack_hooks",
-          current: "0.0.9",
-          latest: "0.0.10",
+          previous: "0.0.9",
+          installed: "0.0.10",
         }];
 
         const expectedImportsUpdateSummary = [
           {
             name: "deno_slack_sdk",
-            current: "0.0.6",
-            latest: "0.0.7",
+            previous: "0.0.6",
+            installed: "0.0.7",
           },
           {
             name: "deno_slack_api",
-            current: "0.0.6",
-            latest: "0.0.7",
+            previous: "0.0.6",
+            installed: "0.0.7",
           },
         ];
 
+        const actual = await createUpdateResp(MOCK_RELEASES);
+        const expected = {
+          name: SDK_NAME,
+          updates: [
+            ...expectedImportsUpdateSummary,
+            ...expectedHooksUpdateSummary,
+          ],
+        };
+
         assertEquals(
-          await createUpdateResp(MOCK_RELEASES),
-          {
-            name: SDK_NAME,
-            updates: [
-              ...expectedImportsUpdateSummary,
-              ...expectedHooksUpdateSummary,
-            ],
-          },
-          "correct update response not returned",
+          actual,
+          expected,
+          `Expected: ${JSON.stringify(expected)}\n Actual: ${
+            JSON.stringify(actual)
+          }`,
         );
       },
     );
@@ -105,21 +124,21 @@ Deno.test("update hook tests", async (t) => {
         const expectedHooksUpdateResp = [
           {
             name: "deno_slack_hooks",
-            current: "0.0.9",
-            latest: "0.0.10",
+            previous: "0.0.9",
+            installed: "0.0.10",
           },
         ];
 
         const expectedImportsUpdateResp = [
           {
             name: "deno_slack_sdk",
-            current: "0.0.6",
-            latest: "0.0.7",
+            previous: "0.0.6",
+            installed: "0.0.7",
           },
           {
             name: "deno_slack_api",
-            current: "0.0.6",
-            latest: "0.0.7",
+            previous: "0.0.6",
+            installed: "0.0.7",
           },
         ];
 
@@ -176,8 +195,8 @@ Deno.test("update hook tests", async (t) => {
 
         const expectedHooksUpdateSummary = [{
           name: "deno_slack_hooks",
-          current: "0.0.9",
-          latest: "0.0.10",
+          previous: "0.0.9",
+          installed: "0.0.10",
         }];
 
         const expectedImportMapJSON = {
@@ -191,13 +210,13 @@ Deno.test("update hook tests", async (t) => {
         const expectedImportsUpdateSummary = [
           {
             name: "deno_slack_sdk",
-            current: "0.0.6",
-            latest: "0.0.7",
+            previous: "0.0.6",
+            installed: "0.0.7",
           },
           {
             name: "deno_slack_api",
-            current: "0.0.6",
-            latest: "0.0.7",
+            previous: "0.0.6",
+            installed: "0.0.7",
           },
         ];
 
@@ -209,6 +228,7 @@ Deno.test("update hook tests", async (t) => {
           },
           "expected update of slack.json map not returned",
         );
+
         assertEquals(
           updateDependencyMap(imports, MOCK_RELEASES),
           {

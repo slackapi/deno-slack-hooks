@@ -14,8 +14,8 @@ interface InstallUpdateResponse {
 
 export interface Update {
   name: string;
-  current: string;
-  latest: string;
+  previous: string;
+  installed: string;
   error?: {
     message: string;
   } | null;
@@ -33,7 +33,16 @@ export const updateDependencies = async () => {
 
   // If no errors occurred during installation, re-build
   // project as a means to cache the changes
-  if (!updateResp.error) runBuildHook();
+  if (!updateResp.error) {
+    try {
+      // TODO :: This try/catch should be nested within createUpdateResp
+      // but doing so surfaces an issue with the --allow-run flag not
+      // being used, despite its presence and success at this level
+      runBuildHook();
+    } catch (err) {
+      updateResp.error = err.message;
+    }
+  }
 
   return updateResp;
 };
@@ -105,8 +114,8 @@ export async function updateDependencyFile(
     );
 
     return updateSummary;
-  } catch (_) {
-    throw new Error(`An error occurred while reading a dependency file`);
+  } catch (err) {
+    throw new Error(err);
   }
 }
 
@@ -135,8 +144,8 @@ export function updateDependencyMap(
         );
         updateSummary.push({
           name,
-          current,
-          latest,
+          previous: current,
+          installed: latest,
         });
       }
     }
@@ -155,10 +164,8 @@ function runBuildHook(): void {
     const { hooks: { build } } = projectScripts([]);
     const buildArgs = build.split(" ");
     Deno.run({ cmd: buildArgs });
-  } catch (_) {
-    throw new Error(
-      `An error occurred while re-building the project with updated versions`,
-    );
+  } catch (err) {
+    throw new Error(err);
   }
 }
 
