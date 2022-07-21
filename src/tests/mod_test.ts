@@ -6,6 +6,6 @@ Deno.test("projectScripts should return a check-update hook that points to its o
   const result = projectScripts([]);
   assertStringIncludes(
     result.hooks["check-update"],
-    `deno_slack_hooks@${hooksVersion}/check-update.ts`,
+    `deno_slack_hooks@${hooksVersion}/check_update.ts`,
   );
 });

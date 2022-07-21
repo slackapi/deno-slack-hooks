@@ -1,6 +1,6 @@
 import { assertEquals, assertRejects } from "../dev_deps.ts";
 import * as mf from "../dev_deps.ts";
-import { extractVersion, fetchLatestModuleVersion } from "../check-update.ts";
+import { extractVersion, fetchLatestModuleVersion } from "../check_update.ts";
 
 Deno.test("check-update hook tests", async (t) => {
   await t.step("extractVersion method", async (evT) => {
