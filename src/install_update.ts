@@ -40,7 +40,7 @@ export const updateDependencies = async () => {
       // being used, despite its presence and success at this level
       runBuildHook();
     } catch (err) {
-      updateResp.error = err.message;
+      updateResp.error = { message: err.message };
     }
   }
 
