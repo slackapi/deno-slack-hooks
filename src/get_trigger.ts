@@ -1,6 +1,6 @@
 import { parse, path } from "./deps.ts";
 
-const createTrigger = async () => {
+const getTrigger = async () => {
   const source = parse(Deno.args).source as string;
 
   if (!source) throw new Error("A source path needs to be defined");
@@ -48,5 +48,5 @@ const readTSFile = async (path: string) => {
 };
 
 if (import.meta.main) {
-  console.log(JSON.stringify(await createTrigger()));
+  console.log(JSON.stringify(await getTrigger()));
 }
