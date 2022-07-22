@@ -1,4 +1,4 @@
-const VERSION = "0.0.10";
+const VERSION = "0.0.11";
 export default VERSION;
 
 if (import.meta.main) {

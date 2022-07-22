@@ -31,7 +31,7 @@ Releasing can feel intimidating at first, but rest assured: if you make a mistak
   - Local integration tests between the Slack CLI, deno-sdk-based application template(s) and this repo. One can modify a deno-sdk-based app project's `slack.json` file to point the `get-hooks` hook to a local version of this repo rather than the deno.land-hosted version.
 3. Bump the version number for this repo in adherence to [Semantic Versioning][semver] in `src/version.ts`.
   - Make a single commit with a message for the version bump.
-4. Send a pull request with this change and tag @slack/HDX and/or @filmaj for review.
+4. Send a pull request with this change and tag @slackapi/HDX and/or @slackapi/denosaurs for review.
 5. Once approved and merged, a deployment workflow will kick off. This workflow will:
   - Create a `git` tag matching the version string you changed in `src/version.ts`.
   - Create a new GitHub Release (initially set to a pre-release) for the version.
