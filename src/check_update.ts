@@ -4,7 +4,7 @@ import {
   DENO_SLACK_SDK,
 } from "./libraries.ts";
 
-import { getJSON } from "./utilities.ts";
+import { getJSON, JSONCValue } from "./utilities.ts";
 
 const IMPORT_MAP_SDKS = [DENO_SLACK_SDK, DENO_SLACK_API];
 const SLACK_JSON_SDKS = [
@@ -50,7 +50,7 @@ export const checkForSDKUpdates = async () => {
  * as if breaking changes are present and if any errors occurred during
  * version retrieval.
  */
-async function createVersionMap() {
+export async function createVersionMap() {
   const versionMap: VersionMap = await readProjectDependencies();
 
   // Check each dependency for updates, classify update as breaking or not,
@@ -82,43 +82,102 @@ async function createVersionMap() {
   return versionMap;
 }
 
-/** readProjectDependencies reads from possible dependency files
- * (import_map.json, slack.json) and maps them to the versionMap
- * containing each dependency's update information
+/** readProjectDependencies cycles through supported project
+ * dependency files and maps them to the versionMap that contains
+ * each dependency's update information.
  */
-async function readProjectDependencies(): Promise<VersionMap> {
+export async function readProjectDependencies(): Promise<VersionMap> {
   const cwd = Deno.cwd();
   const versionMap: VersionMap = {};
+  const dependencyFiles = await gatherDependencyFiles(cwd);
 
-  // Find SDK component versions in import map, if available
-  const map = await getJSON(`${cwd}/import_map.json`);
-  for (const sdkUrl of Object.values(map.imports) as string[]) {
-    for (const sdk of IMPORT_MAP_SDKS) {
-      if (sdkUrl.includes(sdk)) {
-        versionMap[sdk] = {
-          name: sdk,
-          current: extractVersion(sdkUrl),
-        };
-      }
-    }
-  }
+  for (const [file, depKey] of dependencyFiles) {
+    const fileJSON = await getJSON(`${cwd}/${file}`);
+    const fileDependencies = extractDependencies(fileJSON, depKey);
 
-  // Find SDK component versions in slack.json, if available
-  const { hooks }: { [key: string]: string } = await getJSON(
-    `${cwd}/slack.json`,
-  );
-  for (const command of Object.values(hooks)) {
-    for (const sdk of SLACK_JSON_SDKS) {
-      if (command.includes(sdk)) {
-        versionMap[sdk] = {
-          name: sdk,
-          current: extractVersion(command),
-        };
+    // For each dependency found, compare to SDK-related dependency
+    // list and, if known, update the versionMap with version information
+    for (const [_, val] of fileDependencies) {
+      for (const sdk of [...IMPORT_MAP_SDKS, ...SLACK_JSON_SDKS]) {
+        if (val.includes(sdk)) {
+          versionMap[sdk] = {
+            name: sdk,
+            current: extractVersion(val),
+          };
+        }
       }
     }
   }
 
   return versionMap;
+}
+
+/**
+ * gatherDependencyFiles rounds up all SDK-supported dependency files, as well
+ * as those dependency files referenced in deno.json or deno.jsonc, and returns
+ * an array of arrays made up of filename and dependency key pairs.
+ */
+export async function gatherDependencyFiles(cwd: string): Promise<string[][]> {
+  const dependencyFiles = [
+    ["import_map.json", "imports"],
+    ["import_map.jsonc", "imports"],
+    ["slack.json", "hooks"],
+    ["slack.jsonc", "hooks"],
+  ];
+
+  // Parse deno.* files for `importMap` dependency file
+  const denoJSONDepFiles = await getDenoImportMapFiles(cwd);
+  dependencyFiles.push(...denoJSONDepFiles);
+
+  return dependencyFiles;
+}
+
+/**
+ * getDenoImportMapFiles cycles through supported deno.* files and,
+ * if an `importMap` key is found, returns an array of arrays made up
+ * of filename and dependency key pairs.
+ *
+ * ex: [["import_map.json", "imports"], ["custom_map.json", "imports"]]
+ */
+export async function getDenoImportMapFiles(
+  cwd: string,
+): Promise<[string, "imports"][]> {
+  const denoJSONFiles = ["deno.json", "deno.jsonc"];
+  const dependencyFiles: [string, "imports"][] = [];
+
+  for (const file of denoJSONFiles) {
+    const denoJSON = await getJSON(`${cwd}/${file}`);
+    const jsonIsParsable = denoJSON && typeof denoJSON === "object" &&
+      !Array.isArray(denoJSON) && denoJSON.importMap;
+
+    if (jsonIsParsable) {
+      dependencyFiles.push([`${denoJSON.importMap}`, "imports"]);
+    }
+  }
+
+  return dependencyFiles;
+}
+
+/**
+ * extractDependencies accepts the contents of a JSON file and a
+ * top-level, file-specific key within that file that corresponds to
+ * recognized project dependencies. If found, returns an array of key,
+ * value pairs that make use of the dependencies.
+ */
+export function extractDependencies(
+  json: JSONCValue,
+  key: string,
+): [string, string][] {
+  // Determine if the JSON passed is an object
+  const jsonIsParsable = json !== null && typeof json === "object" &&
+    !Array.isArray(json);
+
+  if (jsonIsParsable) {
+    const dependencyMap = json[key];
+    return dependencyMap ? Object.entries(dependencyMap) : [];
+  }
+
+  return [];
 }
 
 /** fetchLatestModuleVersion makes a call to deno.land with the
@@ -139,7 +198,11 @@ export async function fetchLatestModuleVersion(
   return extractVersion(redirect);
 }
 
-export function extractVersion(str: string) {
+/**
+ * extractVersion takes in a string, searches for a version,
+ * and, if version is found, returns that version.
+ */
+export function extractVersion(str: string): string {
   const at = str.indexOf("@");
 
   // Doesn't contain an @ version

@@ -1,5 +1,9 @@
-import { checkForSDKUpdates, Release } from "./check_update.ts";
-import { getJSON } from "./utilities.ts";
+import {
+  checkForSDKUpdates,
+  gatherDependencyFiles,
+  Release,
+} from "./check_update.ts";
+import { getJSON, JSONCValue } from "./utilities.ts";
 import { projectScripts } from "./mod.ts";
 
 export const SDK_NAME = "the Slack SDK";
@@ -61,23 +65,27 @@ export async function createUpdateResp(
 
   try {
     const cwd = Deno.cwd();
+    const dependencyFiles = await gatherDependencyFiles(cwd);
+    let updateResponses: Update[] = [];
 
-    // Update import_map.json with latest dependency versions
-    const importsUpdateResp = await updateDependencyFile(
-      `${cwd}/import_map.json`,
-      releases,
-    );
-
-    // Update slack.json with latest dependency versions
-    const hooksUpdateResp = await updateDependencyFile(
-      `${cwd}/slack.json`,
-      releases,
-    );
-
-    updateResp.updates = [...importsUpdateResp, ...hooksUpdateResp];
+    for (const [file, _] of dependencyFiles) {
+      // Update dependency file with latest dependency versions
+      const updateResp = await updateDependencyFile(`${cwd}/${file}`, releases);
+      updateResponses = [...updateResponses, ...updateResp];
+    }
+    updateResp.updates = updateResponses;
   } catch (err) {
     updateResp.error = { message: err.message };
   }
+
+  // Reduce the total updates returned by removing duplicates
+  updateResp.updates = updateResp.updates.reduce(
+    (existingUpdates: Update[], newUpdate) =>
+      existingUpdates.find((eu) => eu.name === newUpdate.name)
+        ? existingUpdates
+        : [...existingUpdates, newUpdate],
+    [],
+  );
 
   return updateResp;
 }
@@ -92,25 +100,27 @@ export async function updateDependencyFile(
   releases: Release[],
 ): Promise<Update[]> {
   try {
-    const dependencyMap = await getJSON(path);
-    const { imports, hooks } = dependencyMap;
+    const dependencyJSON = await getJSON(path);
+    const isParsable = dependencyJSON && typeof dependencyJSON === "object" &&
+      !Array.isArray(dependencyJSON) &&
+      (dependencyJSON.imports || dependencyJSON.hooks);
 
-    // If file doesn't exist or expected dependency key is missing
-    if (!imports && !hooks) return [];
+    // If file doesn't exist, dependency key is missing or is of wrong type
+    if (!isParsable) return [];
 
-    const dependencyKey = imports ? "imports" : "hooks";
+    const dependencyKey = dependencyJSON.imports ? "imports" : "hooks";
 
     // Update only the dependency-related key in given file ("imports" or "hooks")
     const { updatedDependencies, updateSummary } = updateDependencyMap(
-      dependencyMap[dependencyKey],
+      dependencyJSON[dependencyKey],
       releases,
     );
 
     // Replace the dependency-related section with the updated version
-    dependencyMap[dependencyKey] = updatedDependencies;
+    dependencyJSON[dependencyKey] = updatedDependencies;
     await Deno.writeTextFile(
       path,
-      JSON.stringify(dependencyMap, null, 2).concat("\n"),
+      JSON.stringify(dependencyJSON, null, 2).concat("\n"),
     );
 
     return updateSummary;
@@ -126,10 +136,13 @@ export async function updateDependencyFile(
  * an updated map of all dependencies, as well as an update summary of each.
  */
 export function updateDependencyMap(
-  dependencyMap: { [key: string]: string },
+  dependencyMap: JSONCValue,
   releases: Release[],
 ) {
-  const updatedDependencies: { [key: string]: string } = { ...dependencyMap };
+  const mapIsObject = dependencyMap && typeof dependencyMap === "object" &&
+    !Array.isArray(dependencyMap);
+
+  const updatedDependencies = mapIsObject ? { ...dependencyMap } : {};
   const updateSummary: Update[] = [];
 
   // Loop over key, val pairs of 'imports' or 'hooks', depending on file provided
@@ -137,11 +150,8 @@ export function updateDependencyMap(
     for (const { name, current, latest } of releases) {
       // If the dependency matches an available release,
       // and an update is available, replace the version
-      if (current && latest && val.includes(name)) {
-        updatedDependencies[key] = updatedDependencies[key].replace(
-          current,
-          latest,
-        );
+      if (current && latest && typeof val === "string" && val.includes(name)) {
+        updatedDependencies[key] = val.replace(current, latest);
         updateSummary.push({
           name,
           previous: current,
