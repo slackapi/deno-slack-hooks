@@ -3,8 +3,8 @@ import {
   DENO_SLACK_HOOKS,
   DENO_SLACK_SDK,
 } from "./libraries.ts";
-
-import { getJSON, JSONCValue } from "./utilities.ts";
+import { JSONValue } from "./deps.ts";
+import { getJSON } from "./utilities.ts";
 
 const IMPORT_MAP_SDKS = [DENO_SLACK_SDK, DENO_SLACK_API];
 const SLACK_JSON_SDKS = [
@@ -120,7 +120,6 @@ export async function readProjectDependencies(): Promise<VersionMap> {
 export async function gatherDependencyFiles(cwd: string): Promise<string[][]> {
   const dependencyFiles = [
     ["import_map.json", "imports"],
-    ["import_map.jsonc", "imports"],
     ["slack.json", "hooks"],
     ["slack.jsonc", "hooks"],
   ];
@@ -165,7 +164,7 @@ export async function getDenoImportMapFiles(
  * value pairs that make use of the dependencies.
  */
 export function extractDependencies(
-  json: JSONCValue,
+  json: JSONValue,
   key: string,
 ): [string, string][] {
   // Determine if the JSON passed is an object

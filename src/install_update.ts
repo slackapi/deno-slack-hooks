@@ -3,8 +3,9 @@ import {
   gatherDependencyFiles,
   Release,
 } from "./check_update.ts";
-import { getJSON, JSONCValue } from "./utilities.ts";
+import { getJSON } from "./utilities.ts";
 import { projectScripts } from "./mod.ts";
+import { JSONValue } from "./deps.ts";
 
 export const SDK_NAME = "the Slack SDK";
 
@@ -136,7 +137,7 @@ export async function updateDependencyFile(
  * an updated map of all dependencies, as well as an update summary of each.
  */
 export function updateDependencyMap(
-  dependencyMap: JSONCValue,
+  dependencyMap: JSONValue,
   releases: Release[],
 ) {
   const mapIsObject = dependencyMap && typeof dependencyMap === "object" &&
