@@ -38,9 +38,14 @@ export interface Release {
   } | null;
 }
 
+interface InaccessibleFile {
+  name: string;
+  error: Error;
+}
+
 export const checkForSDKUpdates = async () => {
-  const versionMap: VersionMap = await createVersionMap();
-  const updateResp = createUpdateResp(versionMap);
+  const { versionMap, inaccessibleFiles } = await createVersionMap();
+  const updateResp = createUpdateResp(versionMap, inaccessibleFiles);
   return updateResp;
 };
 
@@ -50,8 +55,10 @@ export const checkForSDKUpdates = async () => {
  * as if breaking changes are present and if any errors occurred during
  * version retrieval.
  */
-export async function createVersionMap() {
-  const versionMap: VersionMap = await readProjectDependencies();
+export async function createVersionMap(): Promise<
+  { versionMap: VersionMap; inaccessibleFiles: InaccessibleFile[] }
+> {
+  const { versionMap, inaccessibleFiles } = await readProjectDependencies();
 
   // Check each dependency for updates, classify update as breaking or not,
   // craft message with information retrieved, and note any error that occurred.
@@ -79,37 +86,45 @@ export async function createVersionMap() {
     }
   }
 
-  return versionMap;
+  return { versionMap, inaccessibleFiles };
 }
 
 /** readProjectDependencies cycles through supported project
  * dependency files and maps them to the versionMap that contains
  * each dependency's update information.
  */
-export async function readProjectDependencies(): Promise<VersionMap> {
+export async function readProjectDependencies(): Promise<
+  { versionMap: VersionMap; inaccessibleFiles: InaccessibleFile[] }
+> {
   const cwd = Deno.cwd();
   const versionMap: VersionMap = {};
-  const dependencyFiles = await gatherDependencyFiles(cwd);
+  const { dependencyFiles, inaccessibleDenoFiles } =
+    await gatherDependencyFiles(cwd);
+  const inaccessibleFiles = [...inaccessibleDenoFiles];
 
-  for (const [file, depKey] of dependencyFiles) {
-    const fileJSON = await getJSON(`${cwd}/${file}`);
-    const fileDependencies = extractDependencies(fileJSON, depKey);
+  for (const [fileName, depKey] of dependencyFiles) {
+    try {
+      const fileJSON = await getJSON(`${cwd}/${fileName}`);
+      const fileDependencies = extractDependencies(fileJSON, depKey);
 
-    // For each dependency found, compare to SDK-related dependency
-    // list and, if known, update the versionMap with version information
-    for (const [_, val] of fileDependencies) {
-      for (const sdk of [...IMPORT_MAP_SDKS, ...SLACK_JSON_SDKS]) {
-        if (val.includes(sdk)) {
-          versionMap[sdk] = {
-            name: sdk,
-            current: extractVersion(val),
-          };
+      // For each dependency found, compare to SDK-related dependency
+      // list and, if known, update the versionMap with version information
+      for (const [_, val] of fileDependencies) {
+        for (const sdk of [...IMPORT_MAP_SDKS, ...SLACK_JSON_SDKS]) {
+          if (val.includes(sdk)) {
+            versionMap[sdk] = {
+              name: sdk,
+              current: extractVersion(val),
+            };
+          }
         }
       }
+    } catch (err) {
+      inaccessibleFiles.push({ name: fileName, error: err });
     }
   }
 
-  return versionMap;
+  return { versionMap, inaccessibleFiles };
 }
 
 /**
@@ -119,16 +134,24 @@ export async function readProjectDependencies(): Promise<VersionMap> {
  */
 export async function gatherDependencyFiles(
   cwd: string,
-): Promise<[string, "imports" | "hooks"][]> {
+): Promise<
+  {
+    dependencyFiles: [string, "imports" | "hooks"][];
+    inaccessibleDenoFiles: InaccessibleFile[];
+  }
+> {
   const dependencyFiles: [string, "imports" | "hooks"][] = [
+    ["import_map.json", "imports"],
+    ["import_map.jsonc", "imports"],
     ["slack.json", "hooks"],
   ];
 
   // Parse deno.* files for `importMap` dependency file
-  const denoJSONDepFiles = await getDenoImportMapFiles(cwd);
+  const { denoJSONDepFiles, inaccessibleDenoFiles } =
+    await getDenoImportMapFiles(cwd);
   dependencyFiles.push(...denoJSONDepFiles);
 
-  return dependencyFiles;
+  return { dependencyFiles, inaccessibleDenoFiles };
 }
 
 /**
@@ -140,21 +163,31 @@ export async function gatherDependencyFiles(
  */
 export async function getDenoImportMapFiles(
   cwd: string,
-): Promise<[string, "imports"][]> {
+): Promise<
+  {
+    denoJSONDepFiles: [string, "imports"][];
+    inaccessibleDenoFiles: InaccessibleFile[];
+  }
+> {
   const denoJSONFiles = ["deno.json", "deno.jsonc"];
-  const dependencyFiles: [string, "imports"][] = [];
+  const denoJSONDepFiles: [string, "imports"][] = [];
+  const inaccessibleDenoFiles: InaccessibleFile[] = [];
 
-  for (const file of denoJSONFiles) {
-    const denoJSON = await getJSON(`${cwd}/${file}`);
-    const jsonIsParsable = denoJSON && typeof denoJSON === "object" &&
-      !Array.isArray(denoJSON) && denoJSON.importMap;
+  for (const fileName of denoJSONFiles) {
+    try {
+      const denoJSON = await getJSON(`${cwd}/${fileName}`);
+      const jsonIsParsable = denoJSON && typeof denoJSON === "object" &&
+        !Array.isArray(denoJSON) && denoJSON.importMap;
 
-    if (jsonIsParsable) {
-      dependencyFiles.push([`${denoJSON.importMap}`, "imports"]);
+      if (jsonIsParsable) {
+        denoJSONDepFiles.push([`${denoJSON.importMap}`, "imports"]);
+      }
+    } catch (err) {
+      inaccessibleDenoFiles.push({ name: fileName, error: err });
     }
   }
 
-  return dependencyFiles;
+  return { denoJSONDepFiles, inaccessibleDenoFiles };
 }
 
 /**
@@ -219,7 +252,7 @@ export function extractVersion(str: string): string {
  * major version difference of greater or equal to 1 between the current
  * and latest version.
  */
-function hasBreakingChange(current: string, latest: string): boolean {
+export function hasBreakingChange(current: string, latest: string): boolean {
   const currMajor = current.split(".")[0];
   const latestMajor = latest.split(".")[0];
   return +latestMajor - +currMajor >= 1;
@@ -230,11 +263,15 @@ function hasBreakingChange(current: string, latest: string): boolean {
  * that contains information about a collection of release dependencies
  * in the shape of an object that the CLI expects to consume
  */
-function createUpdateResp(versionMap: VersionMap): CheckUpdateResponse {
+export function createUpdateResp(
+  versionMap: VersionMap,
+  inaccessibleFiles: InaccessibleFile[],
+): CheckUpdateResponse {
   const name = "the Slack SDK";
   const releases = [];
   const message = "";
   const url = "https://api.slack.com/future/changelog";
+  const fileErrorMsg = createFileErrorMsg(inaccessibleFiles);
 
   let error = null;
   let errorMsg = "";
@@ -254,6 +291,11 @@ function createUpdateResp(versionMap: VersionMap): CheckUpdateResponse {
     }
   }
 
+  // If there were issues accessing dependency files, append error message(s)
+  if (inaccessibleFiles.length) {
+    errorMsg += errorMsg ? `\n\n   ${fileErrorMsg}` : fileErrorMsg;
+  }
+
   if (errorMsg) error = { message: errorMsg };
 
   return {
@@ -265,6 +307,28 @@ function createUpdateResp(versionMap: VersionMap): CheckUpdateResponse {
   };
 }
 
+/**
+ * createFileErrorMsg creates and returns an error message that
+ * contains lightly formatted information about the dependency
+ * files that were found but otherwise inaccessible/unreadable.
+ */
+export function createFileErrorMsg(
+  inaccessibleFiles: InaccessibleFile[],
+): string {
+  let fileErrorMsg = "";
+
+  // There were issues with reading some of the files that were found
+  for (const file of inaccessibleFiles) {
+    // Skip surfacing error to user if supported file was merely not found
+    if (file.error.cause instanceof Deno.errors.NotFound) continue;
+
+    fileErrorMsg += fileErrorMsg
+      ? `\n   ${file.name}: ${file.error.message}`
+      : `An error occurred while reading the following files: \n\n   ${file.name}: ${file.error.message}`;
+  }
+
+  return fileErrorMsg;
+}
 if (import.meta.main) {
   console.log(JSON.stringify(await checkForSDKUpdates()));
 }

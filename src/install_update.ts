@@ -66,15 +66,17 @@ export async function createUpdateResp(
 
   try {
     const cwd = Deno.cwd();
-    const dependencyFiles = await gatherDependencyFiles(cwd);
-    let updateResponses: Update[] = [];
+    const { dependencyFiles } = await gatherDependencyFiles(cwd);
+    // const updateResponses: Update[] = [];
 
     for (const [file, _] of dependencyFiles) {
       // Update dependency file with latest dependency versions
-      const updateResp = await updateDependencyFile(`${cwd}/${file}`, releases);
-      updateResponses = [...updateResponses, ...updateResp];
+      const fileUpdateResp = await updateDependencyFile(
+        `${cwd}/${file}`,
+        releases,
+      );
+      updateResp.updates = [...updateResp.updates, ...fileUpdateResp];
     }
-    updateResp.updates = updateResponses;
   } catch (err) {
     updateResp.error = { message: err.message };
   }

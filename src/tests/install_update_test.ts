@@ -67,13 +67,7 @@ Deno.test("update hook tests", async (t) => {
         const actual = await createUpdateResp(MOCK_RELEASES);
         const expected = { name: SDK_NAME, updates: [] };
 
-        assertEquals(
-          actual,
-          expected,
-          `Expected: ${JSON.stringify(expected)}\n Actual: ${
-            JSON.stringify(actual)
-          }`,
-        );
+        assertEquals(actual, expected);
       },
     );
 
@@ -112,13 +106,7 @@ Deno.test("update hook tests", async (t) => {
           ],
         };
 
-        assertEquals(
-          actual,
-          expected,
-          `Expected: ${JSON.stringify(expected)}\n Actual: ${
-            JSON.stringify(actual)
-          }`,
-        );
+        assertEquals(actual, expected);
       },
     );
   });
@@ -161,13 +149,11 @@ Deno.test("update hook tests", async (t) => {
         assertEquals(
           await updateDependencyFile("./slack.json", MOCK_RELEASES),
           expectedHooksUpdateResp,
-          "correct dependency update response for slack.json was not returned",
         );
 
         assertEquals(
           await updateDependencyFile("./import_map.json", MOCK_RELEASES),
           expectedImportsUpdateResp,
-          "correct dependency update response for import_map.json was not returned",
         );
       },
     );
