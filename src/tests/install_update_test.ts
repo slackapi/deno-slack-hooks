@@ -48,8 +48,13 @@ const MOCK_IMPORT_MAP_JSON = JSON.stringify({
   },
 });
 
+const MOCK_DENO_JSON = JSON.stringify({
+  "importMap": "import_map.json",
+});
+
 const MOCK_SLACK_JSON_FILE = new TextEncoder().encode(MOCK_SLACK_JSON);
 const MOCK_IMPORT_MAP_FILE = new TextEncoder().encode(MOCK_IMPORT_MAP_JSON);
+const MOCK_DENO_JSON_FILE = new TextEncoder().encode(MOCK_DENO_JSON);
 
 Deno.test("update hook tests", async (t) => {
   await t.step("createUpdateResp", async (evT) => {
@@ -73,10 +78,11 @@ Deno.test("update hook tests", async (t) => {
     );
 
     await evT.step(
-      "if import_map.json has available updates, then response includes those updates",
+      "if referenced importMap in deno.json has available updates, then response includes those updates",
       async () => {
-        mockFile.prepareVirtualFile("./import_map.json", MOCK_IMPORT_MAP_FILE);
         mockFile.prepareVirtualFile("./slack.json", MOCK_SLACK_JSON_FILE);
+        mockFile.prepareVirtualFile("./deno.json", MOCK_DENO_JSON_FILE);
+        mockFile.prepareVirtualFile("./import_map.json", MOCK_IMPORT_MAP_FILE);
 
         const expectedHooksUpdateSummary = [{
           name: "deno_slack_hooks",
@@ -101,8 +107,8 @@ Deno.test("update hook tests", async (t) => {
         const expected = {
           name: SDK_NAME,
           updates: [
-            ...expectedImportsUpdateSummary,
             ...expectedHooksUpdateSummary,
+            ...expectedImportsUpdateSummary,
           ],
         };
 

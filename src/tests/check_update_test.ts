@@ -23,7 +23,7 @@ const MOCK_IMPORT_MAP_JSON = JSON.stringify({
 });
 
 const MOCK_DENO_JSON = JSON.stringify({
-  importMap: "custom_import_map.json",
+  "importMap": "import_map.json",
 });
 
 const MOCK_SLACK_JSON_FILE = new TextEncoder().encode(MOCK_SLACK_JSON);
@@ -36,8 +36,9 @@ Deno.test("check-update hook tests", async (t) => {
     await evT.step(
       "if dependency file contains recnognized dependency, version appears in returned map",
       async () => {
-        mockFile.prepareVirtualFile("./import_map.json", MOCK_IMPORT_MAP_FILE);
         mockFile.prepareVirtualFile("./slack.json", MOCK_SLACK_JSON_FILE);
+        mockFile.prepareVirtualFile("./deno.json", MOCK_DENO_JSON_FILE);
+        mockFile.prepareVirtualFile("./import_map.json", MOCK_IMPORT_MAP_FILE);
 
         const actual = await readProjectDependencies();
 
@@ -47,7 +48,6 @@ Deno.test("check-update hook tests", async (t) => {
           "deno_slack_hooks" in actual &&
             "deno_slack_api" in actual &&
             "deno_slack_hooks" in actual,
-          "slack.json dependency wasn't found in returned versionMap",
         );
 
         // Initial expected versionMap properties are present (name, current)
@@ -63,11 +63,17 @@ Deno.test("check-update hook tests", async (t) => {
   // getDenoImportMapFiles
   await t.step("getDenoImportMapFiles method", async (evT) => {
     await evT.step(
-      "if deno.json file is available, or no importMap key is present, an empty array is returned",
+      "if deno.json file is unavailable, or no importMap key is present, an empty array is returned",
       async () => {
+        // Clear out deno.json file that's in memory from previous test(s)
+        mockFile.prepareVirtualFile(
+          "./deno.json",
+          new TextEncoder().encode(""),
+        );
+
         const cwd = Deno.cwd();
         const actual = await getDenoImportMapFiles(cwd);
-        const expected: [string, "imports"][] = [];
+        const expected: [string, "imports" | "hooks"][] = [];
 
         assertEquals(
           actual,
@@ -90,8 +96,7 @@ Deno.test("check-update hook tests", async (t) => {
         // Correct custom importMap file name is returned
         assertEquals(
           actual,
-          [["custom_import_map.json", "imports"]],
-          "correct importMap key value wasn't returned",
+          [["import_map.json", "imports"]],
         );
       },
     );
@@ -138,23 +143,6 @@ Deno.test("check-update hook tests", async (t) => {
           `Expected: ${JSON.stringify([])}\n Actual: ${
             JSON.stringify(importMapActual)
           }`,
-        );
-      },
-    );
-
-    await evT.step(
-      "if deno.json file is available, the correct filename + dependency key pair is returned",
-      async () => {
-        const cwd = Deno.cwd();
-        mockFile.prepareVirtualFile("./deno.json", MOCK_DENO_JSON_FILE);
-
-        const actual = await getDenoImportMapFiles(cwd);
-
-        // Correct custom importMap file name is returned
-        assertEquals(
-          actual,
-          [["custom_import_map.json", "imports"]],
-          "correct importMap key value wasn't returned",
         );
       },
     );
