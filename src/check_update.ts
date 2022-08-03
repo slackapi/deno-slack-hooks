@@ -117,11 +117,11 @@ export async function readProjectDependencies(): Promise<VersionMap> {
  * as those dependency files referenced in deno.json or deno.jsonc, and returns
  * an array of arrays made up of filename and dependency key pairs.
  */
-export async function gatherDependencyFiles(cwd: string): Promise<string[][]> {
-  const dependencyFiles = [
-    ["import_map.json", "imports"],
+export async function gatherDependencyFiles(
+  cwd: string,
+): Promise<[string, "imports" | "hooks"][]> {
+  const dependencyFiles: [string, "imports" | "hooks"][] = [
     ["slack.json", "hooks"],
-    ["slack.jsonc", "hooks"],
   ];
 
   // Parse deno.* files for `importMap` dependency file

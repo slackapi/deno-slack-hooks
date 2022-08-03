@@ -79,14 +79,8 @@ export async function createUpdateResp(
     updateResp.error = { message: err.message };
   }
 
-  // Reduce the total updates returned by removing duplicates
-  updateResp.updates = updateResp.updates.reduce(
-    (existingUpdates: Update[], newUpdate) =>
-      existingUpdates.find((eu) => eu.name === newUpdate.name)
-        ? existingUpdates
-        : [...existingUpdates, newUpdate],
-    [],
-  );
+  // Pare down updates by removing duplicates
+  updateResp.updates = [...new Set(updateResp.updates)];
 
   return updateResp;
 }
