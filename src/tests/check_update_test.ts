@@ -50,7 +50,7 @@ Deno.test("check-update hook tests", async (t) => {
           true,
           "deno_slack_hooks" in versionMap &&
             "deno_slack_api" in versionMap &&
-            "deno_slack_hooks" in versionMap
+            "deno_slack_hooks" in versionMap,
         );
 
         // Initial expected versionMap properties are present (name, current)

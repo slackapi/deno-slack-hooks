@@ -141,7 +141,6 @@ export async function gatherDependencyFiles(
   }
 > {
   const dependencyFiles: [string, "imports" | "hooks"][] = [
-    ["import_map.json", "imports"],
     ["slack.json", "hooks"],
   ];
 
