@@ -59,7 +59,7 @@ const MOCK_DENO_JSON_FILE = new TextEncoder().encode(MOCK_DENO_JSON);
 Deno.test("update hook tests", async (t) => {
   await t.step("createUpdateResp", async (evT) => {
     await evT.step(
-      "if import_map.json and slack.json are not found, then response is an empty array",
+      "if dependency files are not found, response does not include an error",
       async () => {
         // Absence of prepareVirtualFile ensures that file does not exist
         // NOTE: *must* go before .prepareVirtualFile-dependent tests below until

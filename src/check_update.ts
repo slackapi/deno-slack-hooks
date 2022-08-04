@@ -142,6 +142,7 @@ export async function gatherDependencyFiles(
 > {
   const dependencyFiles: [string, "imports" | "hooks"][] = [
     ["slack.json", "hooks"],
+    ["slack.jsonc", "hooks"],
   ];
 
   // Parse deno.* files for `importMap` dependency file

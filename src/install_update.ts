@@ -127,8 +127,10 @@ export async function updateDependencyFile(
 
     return updateSummary;
   } catch (err) {
-    throw new Error(err);
+    if (!(err.cause instanceof Deno.errors.NotFound)) throw err;
   }
+
+  return [];
 }
 
 /**
