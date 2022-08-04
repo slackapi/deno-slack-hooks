@@ -8,7 +8,7 @@ export const DENO_SLACK_RUNTIME = "deno_slack_runtime";
 
 export const VERSIONS = {
   [DENO_SLACK_BUILDER]: "0.1.0",
-  [DENO_SLACK_RUNTIME]: "0.0.9",
+  [DENO_SLACK_RUNTIME]: "0.1.0",
   [DENO_SLACK_HOOKS]: hooksVersion,
 };
 
