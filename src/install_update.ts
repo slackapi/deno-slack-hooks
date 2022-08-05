@@ -66,15 +66,22 @@ export async function createUpdateResp(
 
   try {
     const cwd = Deno.cwd();
-    const dependencyFiles = await gatherDependencyFiles(cwd);
-    let updateResponses: Update[] = [];
+    const { dependencyFiles } = await gatherDependencyFiles(cwd);
 
     for (const [file, _] of dependencyFiles) {
       // Update dependency file with latest dependency versions
-      const updateResp = await updateDependencyFile(`${cwd}/${file}`, releases);
-      updateResponses = [...updateResponses, ...updateResp];
+      try {
+        const fileUpdateResp = await updateDependencyFile(
+          `${cwd}/${file}`,
+          releases,
+        );
+        updateResp.updates = [...updateResp.updates, ...fileUpdateResp];
+      } catch (err) {
+        updateResp.error = updateResp.error
+          ? { message: updateResp.error.message += `\n   ${err.message}` }
+          : { message: err.message };
+      }
     }
-    updateResp.updates = updateResponses;
   } catch (err) {
     updateResp.error = { message: err.message };
   }
@@ -120,8 +127,10 @@ export async function updateDependencyFile(
 
     return updateSummary;
   } catch (err) {
-    throw new Error(err);
+    if (!(err.cause instanceof Deno.errors.NotFound)) throw err;
   }
+
+  return [];
 }
 
 /**

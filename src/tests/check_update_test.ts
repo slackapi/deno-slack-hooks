@@ -1,10 +1,13 @@
 import { assertEquals, assertRejects } from "../dev_deps.ts";
 import { mockFetch, mockFile } from "../dev_deps.ts";
 import {
+  createFileErrorMsg,
+  createUpdateResp,
   extractDependencies,
   extractVersion,
   fetchLatestModuleVersion,
   getDenoImportMapFiles,
+  hasBreakingChange,
   readProjectDependencies,
 } from "../check_update.ts";
 
@@ -40,20 +43,20 @@ Deno.test("check-update hook tests", async (t) => {
         mockFile.prepareVirtualFile("./deno.json", MOCK_DENO_JSON_FILE);
         mockFile.prepareVirtualFile("./import_map.json", MOCK_IMPORT_MAP_FILE);
 
-        const actual = await readProjectDependencies();
+        const { versionMap } = await readProjectDependencies();
 
         // Expected dependencies are present in returned versionMap
         assertEquals(
           true,
-          "deno_slack_hooks" in actual &&
-            "deno_slack_api" in actual &&
-            "deno_slack_hooks" in actual,
+          "deno_slack_hooks" in versionMap &&
+            "deno_slack_api" in versionMap &&
+            "deno_slack_hooks" in versionMap,
         );
 
         // Initial expected versionMap properties are present (name, current)
         assertEquals(
           true,
-          Object.values(actual).every((dep) => dep.name && dep.current),
+          Object.values(versionMap).every((dep) => dep.name && dep.current),
           "slack.json dependency wasn't found in returned versionMap",
         );
       },
@@ -72,14 +75,14 @@ Deno.test("check-update hook tests", async (t) => {
         );
 
         const cwd = Deno.cwd();
-        const actual = await getDenoImportMapFiles(cwd);
-        const expected: [string, "imports" | "hooks"][] = [];
+        const { denoJSONDepFiles } = await getDenoImportMapFiles(cwd);
+        const expected: [string, "imports"][] = [];
 
         assertEquals(
-          actual,
+          denoJSONDepFiles,
           expected,
           `Expected: ${JSON.stringify(expected)}\n Actual: ${
-            JSON.stringify(actual)
+            JSON.stringify(denoJSONDepFiles)
           }`,
         );
       },
@@ -91,11 +94,11 @@ Deno.test("check-update hook tests", async (t) => {
         const cwd = Deno.cwd();
         mockFile.prepareVirtualFile("./deno.json", MOCK_DENO_JSON_FILE);
 
-        const actual = await getDenoImportMapFiles(cwd);
+        const { denoJSONDepFiles } = await getDenoImportMapFiles(cwd);
 
         // Correct custom importMap file name is returned
         assertEquals(
-          actual,
+          denoJSONDepFiles,
           [["import_map.json", "imports"]],
         );
       },
@@ -184,6 +187,27 @@ Deno.test("check-update hook tests", async (t) => {
     );
   });
 
+  // hasBreakingChange
+  await t.step("hasBreakingChange method", async (evT) => {
+    await evT.step(
+      "should return true if version difference is 1.0.0 or greater",
+      () => {
+        const currentVersion = "1.0.0";
+        const latestVersion = "2.0.0";
+        assertEquals(hasBreakingChange(currentVersion, latestVersion), true);
+      },
+    );
+
+    await evT.step(
+      "should return false if version difference is 1.0.0 or less",
+      () => {
+        const currentVersion = "1.0.0";
+        const latestVersion = "1.5.0";
+        assertEquals(hasBreakingChange(currentVersion, latestVersion), false);
+      },
+    );
+  });
+
   // fetchLatestModuleVersion
   await t.step("fetchLatestModuleVersion method", async (evT) => {
     mockFetch.install(); // mock out calls to fetch
@@ -211,5 +235,74 @@ Deno.test("check-update hook tests", async (t) => {
       },
     );
     mockFetch.uninstall();
+  });
+
+  // createUpdateResp
+  await t.step("createUpdateResp method", async (evT) => {
+    await evT.step(
+      "response should include errors if there are inaccessible files found",
+      () => {
+        const error = new Error("test", {
+          cause: new Deno.errors.PermissionDenied(),
+        });
+        const versionMap = {};
+        const inaccessibleFiles = [{ name: "import_map.json", error }];
+        const updateResp = createUpdateResp(versionMap, inaccessibleFiles);
+
+        assertEquals(
+          updateResp.error &&
+            updateResp.error.message.includes("import_map.json"),
+          true,
+        );
+      },
+    );
+
+    await evT.step(
+      "response should not include errors if they are of type NotFound",
+      () => {
+        const error = new Error("test", {
+          cause: new Deno.errors.NotFound(),
+        });
+        const versionMap = {};
+        const inaccessibleFiles = [{ name: "import_map.json", error }];
+        const updateResp = createUpdateResp(versionMap, inaccessibleFiles);
+
+        assertEquals(!updateResp.error, true);
+      },
+    );
+  });
+
+  // createFileErrorMsg
+  await t.step("createFileErrorMsg method", async (evT) => {
+    await evT.step(
+      "message should not include errors if they're instance of NotFound",
+      () => {
+        const error = new Error("test", {
+          cause: new Deno.errors.NotFound(),
+        });
+        const inaccessibleFiles = [{ name: "import_map.json", error }];
+        const errorMsg = createFileErrorMsg(inaccessibleFiles);
+        assertEquals(errorMsg, "");
+      },
+    );
+
+    await evT.step(
+      "message should include errors if they're not instances of NotFound",
+      () => {
+        const notFoundError = new Error("test", {
+          cause: new Deno.errors.NotFound(),
+        });
+        const permissionError = new Error("test", {
+          cause: new Deno.errors.PermissionDenied(),
+        });
+        const inaccessibleFiles = [
+          { name: "import_map.json", error: notFoundError },
+          { name: "slack.json", error: permissionError },
+        ];
+        const errorMsg = createFileErrorMsg(inaccessibleFiles);
+        assertEquals(true, !errorMsg.includes("import_map.json"));
+        assertEquals(true, errorMsg.includes("slack.json"));
+      },
+    );
   });
 });

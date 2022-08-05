@@ -10,12 +10,6 @@ export async function getJSON(file: string): Promise<JSONValue> {
     const fileContents = await Deno.readTextFile(file);
     return parse(fileContents);
   } catch (err) {
-    if (err instanceof Deno.errors.NotFound) {
-      // TODO :: This needs to be updated to bubble up the case
-      // where the file doesn't exist. Doing so requires
-      // refactoring `check-update` and `install-update`
-      // to accommodate the adjustment.
-    }
-    return {};
+    throw new Error(err.message, { cause: err });
   }
 }

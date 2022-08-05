@@ -59,7 +59,7 @@ const MOCK_DENO_JSON_FILE = new TextEncoder().encode(MOCK_DENO_JSON);
 Deno.test("update hook tests", async (t) => {
   await t.step("createUpdateResp", async (evT) => {
     await evT.step(
-      "if import_map.json and slack.json are not found, then response is an empty array",
+      "if dependency files are not found, response does not include an error",
       async () => {
         // Absence of prepareVirtualFile ensures that file does not exist
         // NOTE: *must* go before .prepareVirtualFile-dependent tests below until
@@ -67,13 +67,7 @@ Deno.test("update hook tests", async (t) => {
         const actual = await createUpdateResp(MOCK_RELEASES);
         const expected = { name: SDK_NAME, updates: [] };
 
-        assertEquals(
-          actual,
-          expected,
-          `Expected: ${JSON.stringify(expected)}\n Actual: ${
-            JSON.stringify(actual)
-          }`,
-        );
+        assertEquals(actual, expected);
       },
     );
 
@@ -112,13 +106,7 @@ Deno.test("update hook tests", async (t) => {
           ],
         };
 
-        assertEquals(
-          actual,
-          expected,
-          `Expected: ${JSON.stringify(expected)}\n Actual: ${
-            JSON.stringify(actual)
-          }`,
-        );
+        assertEquals(actual, expected);
       },
     );
   });
@@ -161,13 +149,11 @@ Deno.test("update hook tests", async (t) => {
         assertEquals(
           await updateDependencyFile("./slack.json", MOCK_RELEASES),
           expectedHooksUpdateResp,
-          "correct dependency update response for slack.json was not returned",
         );
 
         assertEquals(
           await updateDependencyFile("./import_map.json", MOCK_RELEASES),
           expectedImportsUpdateResp,
-          "correct dependency update response for import_map.json was not returned",
         );
       },
     );
