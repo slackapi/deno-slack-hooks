@@ -10,9 +10,22 @@ This library requires a recent (at least 1.22) version of [deno](https://deno.la
 
 Any invocations of this library require the `--allow-read` and `--allow-net` [deno permissions](https://deno.land/manual/getting_started/permissions).
 
+## Supported Scripts
+The hooks currently provided by this repo are `build`, `start`, `check-update`, `install-update`, `get-trigger`, and `get-manifest`.
+
+| Hook Name         | CLI Command         | Description                     |
+| ----------------- | ------------------- | ------------------------------- |
+| `build`           | `slack deploy`         | Bundles any functions with Deno into an output directory that's compatible with the Run on Slack runtime. For more information, see the [deno-slack-builder](https://github.com/slackapi/deno-slack-builder) repository. |
+| `check-update`    | `slack upgrade`        | Checks the App's SDK dependencies to determine whether or not any of your libraries need to be updated. |
+| `get-manifest`    | `slack manifest`       | Converts a `manifest.json`, `manifest.js`, or `manifest.ts` file int o a valid manifest JSON payload. For more information, see the [deno-slack-builder](https://github.com/slackapi/deno-slack-builder) repository's `--manifest` arg. |
+| `get-trigger`     | `slack trigger create` | Converts a specified `json`, `js`, or `ts` file into a valid trigger JSON payload to be uploaded by the CLI to the `workflows.triggers.create` Slack API endpoint.|
+| `install-update`  | `slack upgrade`        | Prompts the user to automatically update any dependencies that need to be updated based on the result of the `check-update` hook. |
+| `start`           | `slack run`            | Creates a socket connection between the Slack CLI and a Slack workspace for local development that includes hot reloading. For more information, see the [deno-slack-runtime](https://github.com/slackapi/deno-slack-runtime) repository's details on `local-run`. |
+
+
 ## Script Overrides
 
-If you find yourself needing to override a hook script specified by this library, you can do so in your Slack app's `/slack.json` file! Just specify a new script for the hook in question. The hooks currently provided by this repo that can be overridden are `build`, `start`, and `get-manifest`.
+If you find yourself needing to override a hook script specified by this library, you can do so in your Slack app's `/slack.json` file! Just specify a new script for the hook in question. All supported hooks can be overwritten.
 
 Below is an example `/slack.json` file that overrides the `build` script to point to your local repo for development purposes. It's using an implicit "latest" version of the https://deno.land/x/deno_slack_hooks/mod.ts script, but we suggest pinning it to whatever the latest version is.
 
