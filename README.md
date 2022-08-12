@@ -13,8 +13,8 @@ Any invocations of this library require the `--allow-read` and `--allow-net` [de
 ## Supported Scripts
 The hooks currently provided by this repo are `build`, `start`, `check-update`, `install-update`, `get-trigger`, and `get-manifest`.
 
-| Hook Name         | CLI Command         | Description                     |
-| ----------------- | ------------------- | ------------------------------- |
+| Hook Name         | CLI Command            | Description                     |
+| ----------------- | ---------------------- | ------------------------------- |
 | `build`           | `slack deploy`         | Bundles any functions with Deno into an output directory that's compatible with the Run on Slack runtime. For more information, see the [deno-slack-builder](https://github.com/slackapi/deno-slack-builder) repository. |
 | `check-update`    | `slack upgrade`        | Checks the App's SDK dependencies to determine whether or not any of your libraries need to be updated. |
 | `get-manifest`    | `slack manifest`       | Converts a `manifest.json`, `manifest.js`, or `manifest.ts` file int o a valid manifest JSON payload. For more information, see the [deno-slack-builder](https://github.com/slackapi/deno-slack-builder) repository's `--manifest` arg. |
