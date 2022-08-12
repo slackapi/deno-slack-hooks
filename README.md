@@ -23,7 +23,35 @@ The hooks currently provided by this repo are `build`, `start`, `check-update`, 
 | `start`           | `slack run`            | Creates a socket connection between the Slack CLI and a Slack workspace for local development that includes hot reloading. For more information, see the [deno-slack-runtime](https://github.com/slackapi/deno-slack-runtime) repository's details on `local-run`. |
 
 
-## Script Overrides
+### Check Update Script Usage
+The `check_update.ts` file is executed as a Deno program and takes no arguments.
+
+#### Example
+```bash
+deno run -q --config=deno.jsonc --allow-read --allow-net https://deno.land/x/deno_slack_hooks/check_update.ts
+```
+### Get Trigger Script Usage
+
+The `get_trigger.ts` file is executed as a Deno program and takes one required argument:
+
+| Arguments  | Description                                           |
+| ---------- | ----------------------------------------------------- |
+| `--source` | Absolute or relative path to your target trigger file. The trigger object must be exported as default from this file. |
+
+
+#### Example
+```bash
+deno run -q --config=deno.jsonc --allow-read --allow-net https://deno.land/x/deno_slack_hooks/get_trigger.ts --source="./trigger.ts"
+```
+
+### Install Update Script Usage
+The `check_update.ts` file is executed as a Deno program and takes no arguments.
+
+#### Example
+```bash
+deno run -q --config=deno.jsonc --allow-run --allow-read --allow-write --allow-net https://deno.land/x/deno_slack_hooks/install_update.ts
+```
+## Script Overrides Usage
 
 If you find yourself needing to override a hook script specified by this library, you can do so in your Slack app's `/slack.json` file! Just specify a new script for the hook in question. All supported hooks can be overwritten.
 
