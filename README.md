@@ -32,7 +32,7 @@ The `check_update.ts` file is executed as a Deno program and takes no arguments.
 deno run -q --config=deno.jsonc --allow-read --allow-net https://deno.land/x/deno_slack_hooks/check_update.ts
 ```
 ### Get Hooks Script Usage
-The `mod.ts` file is executed as a Deno program and takes one no arguments
+The `mod.ts` file is executed as a Deno program and takes no arguments.
 
 #### Example
 ```bash
