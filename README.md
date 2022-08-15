@@ -53,7 +53,7 @@ deno run -q --config=deno.jsonc --allow-read --allow-net https://deno.land/x/den
 ```
 
 ### Install Update Script Usage
-The `check_update.ts` file is executed as a Deno program and takes no arguments.
+The `install_update.ts` file is executed as a Deno program and takes no arguments.
 
 #### Example
 ```bash
