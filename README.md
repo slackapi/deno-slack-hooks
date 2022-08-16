@@ -21,7 +21,7 @@ The hooks currently provided by this repo are `build`, `start`, `check-update`, 
 | `get-hooks`       | N/A                    | Fetches the list of available hooks for the CLI from this repository. |
 | `get-trigger`     | `slack trigger create` | Converts a specified `json`, `js`, or `ts` file into a valid trigger JSON payload to be uploaded by the CLI to the `workflows.triggers.create` Slack API endpoint. |
 | `install-update`  | `slack upgrade`        | Prompts the user to automatically update any dependencies that need to be updated based on the result of the `check-update` hook. |
-| `start`           | `slack run`            | Creates a socket connection between the Slack CLI and a Slack workspace for local development that includes hot reloading. For more information, see the [deno-slack-runtime](https://github.com/slackapi/deno-slack-runtime) repository's details on `local-run`. |
+| `start`           | `slack run`            | While developing and locally running a deno-slack-based application, the CLI manages a socket connection with Slack's backend and delegates to this hook for invoking the correct application function for relevant events incoming via this connection. For more information, see the [deno-slack-runtime](https://github.com/slackapi/deno-slack-runtime) repository's details on `local-run`. |
 
 
 ### Check Update Script Usage
