@@ -278,7 +278,7 @@ export function createUpdateResp(
   // Output information for each dependency
   for (const sdk of Object.values(versionMap)) {
     // Dependency has an update OR the fetch of update failed
-    if (sdk && (sdk.update || sdk.error?.message)) {
+    if (sdk) {
       releases.push(sdk);
 
       // Add the dependency that failed to be fetched to the top-level error message
