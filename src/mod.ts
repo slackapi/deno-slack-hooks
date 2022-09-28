@@ -10,6 +10,10 @@ export const projectScripts = (args: string[]) => {
         `deno run -q --config=deno.jsonc --allow-read --allow-net https://deno.land/x/${BUILDER_TAG}/mod.ts --manifest`,
       "get-trigger":
         `deno run -q --config=deno.jsonc --allow-read --allow-net https://deno.land/x/${HOOKS_TAG}/get_trigger.ts`,
+      "get-workflow":
+        `deno run -q --config=deno.jsonc --allow-read --allow-net https://deno.land/x/${HOOKS_TAG}/get_workflow.ts`,
+      "generate-trigger":
+        `deno run -q --config=deno.jsonc --allow-read --allow-write --allow-net https://deno.land/x/${HOOKS_TAG}/generate_trigger.ts`,
       "build":
         `deno run -q --config=deno.jsonc --allow-read --allow-write --allow-net --allow-run https://deno.land/x/${BUILDER_TAG}/mod.ts`,
       "start":
