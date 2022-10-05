@@ -25,20 +25,15 @@ export interface Response {
 }
 
 const generateTriggerFile = async (): Promise<Response> => {
+  // Parse JSON payload
   const source = parse(Deno.args).source as string;
   if (!source) throw new Error("A source path needs to be defined");
+  const payload: TriggersPayload = JSON.parse(source);
 
-  const fullPath = path.isAbsolute(source)
-    ? source
-    : path.join(Deno.cwd(), source || "");
-
-  const payload: TriggersPayload = await Deno.readTextFile(
-    fullPath,
-  ).then(JSON.parse);
-
-  // Sorting alphabetically because only a monster would generate these in a random order
+  // Sort alphabetically
   payload.triggers.sort((a, b) => a.name.localeCompare(b.name));
 
+  // Create the triggers directory if it does not exist
   const directory = "triggers";
   try {
     await Deno.stat(directory);
@@ -50,19 +45,18 @@ const generateTriggerFile = async (): Promise<Response> => {
     }
   }
 
+  // Generate the files
   const files: Array<string> = [];
-  await Promise.all(payload.triggers.map(async (tr) => {
+  await Promise.all(payload.triggers.map(async (tr: TriggerFileRecord) => {
     console.log(
       `Generating code for Slack Workflow Trigger: ${tr.name}`,
     );
     const templateString = SlackTriggerTemplate(tr);
     const filename = directory + `/${tr.workflow.callback_id}.ts`;
-
+  
     await Deno.writeTextFile(filename, templateString);
     files.push(filename);
   }));
-
-  console.log(`Wrote ${files.length} files`);
 
   return { ok: true, files: files };
 };
@@ -90,7 +84,7 @@ import { Trigger } from "deno-slack-api/types.ts";
 const ${camelCase}Trigger: Trigger = {
   type: "${tr.type}",
   name: "${tr.name}",
-  description: "${tr.description}",
+  description: "${tr.description || ""}",
   workflow: "#/workflows/${tr.workflow.callback_id}",
   inputs: {
     interactivity: {

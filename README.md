@@ -52,6 +52,29 @@ The `get_trigger.ts` file is executed as a Deno program and takes one required a
 deno run -q --config=deno.jsonc --allow-read --allow-net https://deno.land/x/deno_slack_hooks/get_trigger.ts --source="./trigger.ts"
 ```
 
+### Generate Trigger Script Usage
+
+The `get_trigger.ts` file is executed as a Deno program and takes one required argument:
+
+| Arguments  | Description                                           |
+| ---------- | ----------------------------------------------------- |
+| `--source` | JSON representation of trigger definitions. 
+               Expected format:  
+                    {
+                      "triggers": [{
+                        "type": "shortcut",
+                        "name": "test_reverse trigger",
+                        "description": "Reverses the string",
+                        "workflow": {"callback_id": "test_reverse"}
+                      }]
+                    }|
+
+
+#### Example
+```bash
+deno run --allow-write --allow-net generate_trigger.ts --source='{ "triggers": [{ "type": "shortcut", "name": "test_reverse trigger", "description": "", "workflow": {"callback_id": "test_reverse"} }] }'
+```
+
 ### Install Update Script Usage
 The `install_update.ts` file is executed as a Deno program and takes no arguments.
 
