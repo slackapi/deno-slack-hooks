@@ -72,7 +72,7 @@ The `get_trigger.ts` file is executed as a Deno program and takes one required a
 
 #### Example
 ```bash
-deno run --allow-write --allow-net generate_trigger.ts --source='{ "triggers": [{ "type": "shortcut", "name": "test_reverse trigger", "description": "", "workflow": {"callback_id": "test_reverse"} }] }'
+deno run --allow-read --allow-write --allow-net generate_trigger.ts --source='{ "triggers": [{ "type": "shortcut", "name": "test_reverse trigger", "description": "", "workflow": {"callback_id": "test_reverse"}, "inputs":{"interaction":{"value":"{{data.interactivity}}"}} }] }'
 ```
 
 ### Install Update Script Usage
