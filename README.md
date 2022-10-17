@@ -54,7 +54,7 @@ deno run -q --config=deno.jsonc --allow-read --allow-net https://deno.land/x/den
 
 ### Generate Trigger Script Usage
 
-The `get_trigger.ts` file is executed as a Deno program and takes one required argument:
+The `generate_trigger.ts` file is executed as a Deno program and takes one required argument:
 
 | Arguments  | Description                                           |
 | ---------- | ----------------------------------------------------- |
