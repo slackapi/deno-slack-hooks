@@ -8,6 +8,7 @@ export const DENO_SLACK_RUNTIME = "deno_slack_runtime";
 
 export const VERSIONS = {
   [DENO_SLACK_BUILDER]: "0.1.0",
+  // TODO(mcodik): DO NOT SUBMIT, need to release runtime first and update this version number
   [DENO_SLACK_RUNTIME]: "0.3.1",
   [DENO_SLACK_HOOKS]: hooksVersion,
 };
