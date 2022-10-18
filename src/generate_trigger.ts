@@ -20,7 +20,7 @@ export type TriggersPayload = {
   triggers: TriggerFileRecord[];
 };
 
-export interface Response {
+interface Response {
   ok: boolean;
   files: Array<string>;
   error?: {
@@ -77,7 +77,7 @@ export const SlackTriggerTemplate = (tr: TriggerFileRecord) => {
   if (tr.inputs) {
     for (const prop in tr.inputs) {
       if (tr.inputs[prop].value.includes("interactivity")) {
-        inputValues += `    
+        inputValues += `
   ${prop}: {
     value: "{{data.interactivity}}",
   },
@@ -103,7 +103,7 @@ const ${camelCase}Trigger: Trigger = {
   inputs: {${inputValues}},
 };
 
-export default ${camelCase}Trigger; 
+export default ${camelCase}Trigger;
 `;
 };
 
