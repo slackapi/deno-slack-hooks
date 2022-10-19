@@ -1,5 +1,4 @@
 export {
-  assert,
   assertEquals,
   assertRejects,
   assertStringIncludes,

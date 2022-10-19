@@ -14,6 +14,7 @@ export type TriggerFileRecord = {
   "description"?: string;
   "workflow": WorkflowRecord;
   "inputs"?: Inputs;
+  "relative_filepath": string;
 };
 
 export type TriggersPayload = {
@@ -22,10 +23,8 @@ export type TriggersPayload = {
 
 interface Response {
   ok: boolean;
-  files: Array<string>;
-  error?: {
-    message: string;
-  } | null;
+  files?: Array<string>;
+  error?: Array<string> | null;
 }
 
 export const generateTriggerFile = async (
@@ -36,27 +35,26 @@ export const generateTriggerFile = async (
   if (!source) throw new Error("A source object needs to be defined");
   const payload: TriggersPayload = JSON.parse(source);
 
-  // Create the triggers directory if it does not exist
-  const directory = "triggers";
-  try {
-    await Deno.stat(directory);
-  } catch (error) {
-    if (error instanceof Deno.errors.NotFound) { // create directory
-      await Deno.mkdir(directory);
-    } else {
-      throw error;
-    }
-  }
-
   // Generate the files
   const files: Array<string> = [];
+  const errors: Array<string> = [];
   await Promise.all(payload.triggers.map(async (tr: TriggerFileRecord) => {
     const templateString = SlackTriggerTemplate(tr);
-    const filename = directory + `/${tr.workflow.callback_id}.ts`;
+    const filename = tr.relative_filepath;
 
-    await Deno.writeTextFile(filename, templateString);
+    try {
+      await Deno.writeTextFile(filename, templateString);
+    } catch (err) {
+      errors.push(err.message);
+      return;
+    }
+
     files.push(filename);
   }));
+
+  if (errors.length > 0) {
+    return { ok: false, error: errors };
+  }
 
   return { ok: true, files: files };
 };

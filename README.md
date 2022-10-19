@@ -65,6 +65,7 @@ The `generate_trigger.ts` file is executed as a Deno program and takes one requi
                         "type": "shortcut",
                         "name": "test_reverse trigger",
                         "description": "Reverses the string",
+                        "relative_filepath": "triggers/reverse_trigger.ts",
                         "workflow": {"callback_id": "test_reverse"}
                       }]
                     }|
@@ -72,7 +73,7 @@ The `generate_trigger.ts` file is executed as a Deno program and takes one requi
 
 #### Example
 ```bash
-deno run --allow-read --allow-write --allow-net src/generate_trigger.ts --source='{ "triggers": [{ "type": "shortcut", "name": "test_reverse trigger", "description": "", "workflow": {"callback_id": "test_reverse"}, "inputs":{"interaction":{"value":"{{data.interactivity}}"}} }] }'
+deno run --allow-read --allow-write --allow-net src/generate_trigger.ts --source='{ "triggers": [{ "type": "shortcut", "name": "test_reverse trigger", "description": "", "relative_filepath": "reverse_trigger.ts", "workflow": {"callback_id": "test_reverse"}, "inputs":{"interaction":{"value":"{{data.interactivity}}"}} }] }'
 ```
 
 ### Install Update Script Usage
