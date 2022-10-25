@@ -211,27 +211,42 @@ Deno.test("check-update hook tests", async (t) => {
   // fetchLatestModuleVersion
   await t.step("fetchLatestModuleVersion method", async (evT) => {
     mockFetch.install(); // mock out calls to fetch
+
+    const mockMetadataJSON = JSON.stringify({
+      "deno-slack-sdk": {
+        title: "Deno Slack SDK",
+        releases: [
+          {
+            version: "1.3.0",
+            release_date: "2022-10-17",
+          },
+          {
+            version: "1.2.7",
+            release_date: "2022-10-10",
+          },
+        ],
+      },
+    });
+
     await evT.step(
-      "should throw if location header is not returned",
+      "should throw if module is not found",
       async () => {
-        mockFetch.mock("GET@/x/slack", (_req: Request) => {
-          return new Response(null, { headers: {} });
+        mockFetch.mock("GET@/slackcli/metadata.json", (_req: Request) => {
+          return new Response(mockMetadataJSON);
         });
         await assertRejects(async () => {
-          return await fetchLatestModuleVersion("slack");
+          return await fetchLatestModuleVersion("non-existent-module");
         });
       },
     );
     await evT.step(
-      "should return version extracted from location header",
+      "should return latest module version from metadata.json",
       async () => {
-        mockFetch.mock("GET@/x/slack", (_req: Request) => {
-          return new Response(null, {
-            headers: { location: "/x/slack@0.1.1" },
-          });
+        mockFetch.mock("GET@/slackcli/metadata.json", (_req: Request) => {
+          return new Response(mockMetadataJSON);
         });
-        const version = await fetchLatestModuleVersion("slack");
-        assertEquals(version, "0.1.1", "inocrrect version returned");
+        const version = await fetchLatestModuleVersion("deno-slack-sdk");
+        assertEquals(version, "1.3.0", "incocrrect version returned");
       },
     );
     mockFetch.uninstall();

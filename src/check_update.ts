@@ -211,22 +211,20 @@ export function extractDependencies(
   return [];
 }
 
-/** fetchLatestModuleVersion makes a call to deno.land with the
- * module name and returns the extracted version number, if found
+/** fetchLatestModuleVersion retrieves the published metadata.json that
+ * contains all releases and returns the latest published version
  */
 export async function fetchLatestModuleVersion(
   moduleName: string,
 ): Promise<string> {
-  const res = await fetch(`https://deno.land/x/${moduleName}`, {
-    redirect: "manual",
-  });
-
-  const redirect = res.headers.get("location");
-  if (redirect === null) {
-    throw new Error(`${moduleName} not found on deno.land!`);
+  try {
+    const res = await fetch("https://api.slack.com/slackcli/metadata.json");
+    const jsonData = await res.json();
+    const hypenatedModuleName = moduleName.replaceAll("_", "-");
+    return jsonData[hypenatedModuleName].releases[0].version;
+  } catch (err) {
+    throw new Error(err);
   }
-
-  return extractVersion(redirect);
 }
 
 /**
@@ -284,7 +282,7 @@ export function createUpdateResp(
       // Add the dependency that failed to be fetched to the top-level error message
       if (sdk.error && sdk.error.message) {
         errorMsg += errorMsg
-          ? `, ${sdk}`
+          ? `, ${sdk.name}`
           : `An error occurred fetching updates for the following packages: ${sdk.name}`;
       }
     }
