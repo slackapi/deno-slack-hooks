@@ -13,7 +13,7 @@ export const projectScripts = (args: string[]) => {
       "build":
         `deno run -q --config=deno.jsonc --allow-read --allow-write --allow-net --allow-run https://deno.land/x/${BUILDER_TAG}/mod.ts`,
       "start":
-        `deno run -q --config=deno.jsonc --allow-read --allow-net ${startHookFlags} https://deno.land/x/${RUNTIME_TAG}/local-run.ts`,
+        `deno run -q --config=deno.jsonc --allow-read --allow-net --allow-run https://deno.land/x/${RUNTIME_TAG}/local-run.ts ${startHookFlags}`,
       "check-update":
         `deno run -q --config=deno.jsonc --allow-read --allow-net https://deno.land/x/${HOOKS_TAG}/check_update.ts`,
       "install-update":
