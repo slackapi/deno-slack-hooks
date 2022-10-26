@@ -246,7 +246,7 @@ Deno.test("check-update hook tests", async (t) => {
           return new Response(mockMetadataJSON);
         });
         const version = await fetchLatestModuleVersion("deno-slack-sdk");
-        assertEquals(version, "1.3.0", "incocrrect version returned");
+        assertEquals(version, "1.3.0", "incorrect version returned");
       },
     );
     mockFetch.uninstall();
