@@ -33,7 +33,9 @@ export interface Update {
  */
 export const updateDependencies = async () => {
   const { releases } = await checkForSDKUpdates();
-  const updatableReleases = releases.filter((r) => r.current && r.latest);
+  const updatableReleases = releases.filter((r) =>
+    r.update && r.current && r.latest
+  );
   const updateResp = await createUpdateResp(updatableReleases);
 
   // If no errors occurred during installation, re-build
