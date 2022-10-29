@@ -73,7 +73,8 @@ export async function createVersionMap(): Promise<
         error = err;
       }
 
-      const update = (!!current && !!latest) && current !== latest;
+      const update = (!!current && !!latest) &&
+        isNewSemverRelease(current, latest);
       const breaking = hasBreakingChange(current, latest);
 
       versionMap[sdk] = {
@@ -243,6 +244,26 @@ export function extractVersion(str: string): string {
     : str.substring(at + 1, slash);
   return version;
 }
+
+/**
+ * isNewSemverRelease takes two semver formatted strings
+ * and compares them to see if the second argument is a
+ * newer version than the first argument.
+ * If it's newer it returns true, otherwise returns false.
+ */
+
+export const isNewSemverRelease = (current: string, target: string) => {
+  const [currMajor, currMinor, currPatch] = current
+    .split(".")
+    .map((val) => Number(val));
+  const [targetMajor, targetMinor, targetPatch] = target
+    .split(".")
+    .map((val) => Number(val));
+
+  if (targetMajor !== currMajor) return targetMajor > currMajor;
+  if (targetMinor !== currMinor) return targetMinor > currMinor;
+  return targetPatch > currPatch;
+};
 
 /**
  * hasBreakingChange determines whether or not there is a
