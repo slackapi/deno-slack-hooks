@@ -7,13 +7,13 @@ export const projectScripts = (args: string[]) => {
     "runtime": "deno",
     "hooks": {
       "get-manifest":
-        `deno run -q --config=deno.jsonc --allow-read --allow-net https://deno.land/x/${BUILDER_TAG}/mod.ts --manifest`,
+        `deno run -q --config=deno.jsonc --allow-read --allow-net --allow-env https://deno.land/x/${BUILDER_TAG}/mod.ts --manifest`,
       "get-trigger":
         `deno run -q --config=deno.jsonc --allow-read --allow-net https://deno.land/x/${HOOKS_TAG}/get_trigger.ts`,
       "build":
-        `deno run -q --config=deno.jsonc --allow-read --allow-write --allow-net --allow-run https://deno.land/x/${BUILDER_TAG}/mod.ts`,
+        `deno run -q --config=deno.jsonc --allow-read --allow-write --allow-net --allow-run --allow-env https://deno.land/x/${BUILDER_TAG}/mod.ts`,
       "start":
-        `deno run -q --config=deno.jsonc --allow-read --allow-net --allow-run https://deno.land/x/${RUNTIME_TAG}/local-run.ts ${startHookFlags}`,
+        `deno run -q --config=deno.jsonc --allow-read --allow-net --allow-run --allow-env https://deno.land/x/${RUNTIME_TAG}/local-run.ts ${startHookFlags}`,
       "check-update":
         `deno run -q --config=deno.jsonc --allow-read --allow-net https://deno.land/x/${HOOKS_TAG}/check_update.ts`,
       "install-update":
