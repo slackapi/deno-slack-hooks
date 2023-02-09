@@ -20,7 +20,7 @@ export const projectScripts = (args: string[]) => {
         `deno run -q --config=deno.jsonc --allow-run --allow-read --allow-write --allow-net https://deno.land/x/${HOOKS_TAG}/install_update.ts`,
     },
     "config": {
-      "protocol-version": ["dont-cross-the-streams"],
+      "protocol-version": ["message-boundaries", "dont-cross-the-streams"],
       "watch": {
         "filter-regex": "\\.(ts|js)$",
         "paths": ["."],
