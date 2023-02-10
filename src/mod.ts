@@ -7,11 +7,11 @@ export const projectScripts = (args: string[]) => {
     "runtime": "deno",
     "hooks": {
       "get-manifest":
-        `deno run -q --config=deno.jsonc --allow-read --allow-net --allow-env https://raw.githubusercontent.com/slackapi/deno-slack-builder/79a47b0588c2325a4ca2f9fd74cce65074564644/src/mod.ts --manifest`,
+        `deno run -q --config=deno.jsonc --allow-read --allow-net --allow-env https://raw.githubusercontent.com/slackapi/deno-slack-builder/6db271e/src/mod.ts --manifest`,
       "get-trigger":
         `deno run -q --config=deno.jsonc --allow-read --allow-net --allow-env ${import.meta.url}/../get_trigger.ts`,
       "build":
-        `deno run -q --config=deno.jsonc --allow-read --allow-write --allow-net --allow-run --allow-env https://raw.githubusercontent.com/slackapi/deno-slack-builder/79a47b0588c2325a4ca2f9fd74cce65074564644/src/mod.ts`,
+        `deno run -q --config=deno.jsonc --allow-read --allow-write --allow-net --allow-run --allow-env https://raw.githubusercontent.com/slackapi/deno-slack-builder/6db271e/src/mod.ts`,
       "start":
         `deno run -q --config=deno.jsonc --allow-read --allow-net --allow-run --allow-env https://deno.land/x/${RUNTIME_TAG}/local-run.ts ${startHookFlags}`,
       "check-update":
