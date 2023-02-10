@@ -13,7 +13,7 @@ export const projectScripts = (args: string[]) => {
       "build":
         `deno run -q --config=deno.jsonc --allow-read --allow-write --allow-net --allow-run --allow-env https://raw.githubusercontent.com/slackapi/deno-slack-builder/6db271e/src/mod.ts`,
       "start":
-        `deno run -q --config=deno.jsonc --allow-read --allow-net --allow-run --allow-env https://deno.land/x/${RUNTIME_TAG}/local-run.ts ${startHookFlags}`,
+        `deno run -q --config=deno.jsonc --allow-read --allow-net --allow-run --allow-env https://raw.githubusercontent.com/slackapi/deno-slack-runtime/4fc0d4f/src/local-run.ts ${startHookFlags}`,
       "check-update":
         `deno run -q --config=deno.jsonc --allow-read --allow-net ${import.meta.url}/../check_update.ts`,
       "install-update":
