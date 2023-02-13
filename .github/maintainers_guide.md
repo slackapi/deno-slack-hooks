@@ -22,26 +22,43 @@ To run the tests along with a coverage report:
 
 This command is also executed by GitHub Actions, the continuous integration service, for every Pull Request and branch.
 
+### Lint and format
+
+The linting and formatting rules are defined in the `deno.jsonc` file, your IDE can be set up to follow these rules:
+
+1. Refer to the [Deno Set Up Your Environment](https://deno.land/manual/getting_started/setup_your_environment) guidelines to set up your IDE with the proper plugin.
+2. Ensure that the `deno.jsonc` file is set as the configuration file for your IDE plugin
+   * If you are using VS code [this](https://deno.land/manual/references/vscode_deno#using-a-configuration-file) is already configured in `.vscode/settings.json`
+
+#### Linting
+
+The list of linting rules can be found in [the linting deno docs](https://lint.deno.land/).
+Currently we apply all recommended rules.
+
+#### Format
+
+The list of format options is defined in the `deno.jsonc` file. They closely resemble the default values.
+
 ### Releasing
 
 Releasing can feel intimidating at first, but rest assured: if you make a mistake, don't fret! We can always roll forward with another release 😃
 
 1. Make sure your local `main` branch has the latest changes.
 2. Run the tests as per the above Testing section, and any other local verification, such as:
-  - Local integration tests between the Slack CLI, deno-sdk-based application template(s) and this repo. One can modify a deno-sdk-based app project's `slack.json` file to point the `get-hooks` hook to a local version of this repo rather than the deno.land-hosted version.
+   * Local integration tests between the Slack CLI, deno-sdk-based application template(s) and this repo. One can modify a deno-sdk-based app project's `slack.json` file to point the `get-hooks` hook to a local version of this repo rather than the deno.land-hosted version.
 3. Bump the version number for this repo in adherence to [Semantic Versioning][semver] in `src/version.ts`.
-  - Make a single commit with a message for the version bump.
+   * Make a single commit with a message for the version bump.
 4. Send a pull request with this change and tag @slackapi/HDX and/or @slackapi/denosaurs for review.
 5. Once approved and merged, a deployment workflow will kick off. This workflow will:
-  - Create a `git` tag matching the version string you changed in `src/version.ts`.
-  - Create a new GitHub Release (initially set to a pre-release) for the version.
-  - As soon as the `git` tag lands in the repo, this will kick off an automatic deployment to deno.land for this module: https://deno.land/x/deno_slack_hooks
+   * Create a `git` tag matching the version string you changed in `src/version.ts`.
+   * Create a new GitHub Release (initially set to a pre-release) for the version.
+   * As soon as the `git` tag lands in the repo, this will kick off an automatic deployment to deno.land for this module: https://deno.land/x/deno_slack_hooks
 6. Edit the latest generated GitHub Release from the [Releases page](https://github.com/slackapi/deno-slack-hooks/releases):
-  - Ensure the changelog notes are human readable, accurate, and up-to-date.
-  - Un-check the "This is a pre-release" checkbox once you are happy with the release notes.
-  - Click "Update release."
-11. If all went well, you should see your version up on [deno.land](https://deno.land/x/deno_slack_hooks)! If it didn't work, check:
-  - The [GitHub Actions page for the continuous deployment workflow](https://github.com/slackapi/deno-slack-hooks/actions/workflows/deno-cd.yml). Did it fail? If so, why?
+   * Ensure the changelog notes are human readable, accurate, and up-to-date.
+   * Un-check the "This is a pre-release" checkbox once you are happy with the release notes.
+   * Click "Update release."
+7. If all went well, you should see your version up on [deno.land](https://deno.land/x/deno_slack_hooks)! If it didn't work, check:
+    * The [GitHub Actions page for the continuous deployment workflow](https://github.com/slackapi/deno-slack-hooks/actions/workflows/deno-cd.yml). Did it fail? If so, why?
 
 ## Workflow
 

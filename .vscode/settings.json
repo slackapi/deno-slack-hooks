@@ -1,13 +1,12 @@
 {
-    "deno.enable": true,
-    "deno.lint": true,
-    "deno.suggest.imports.hosts": {
-      "https://deno.land": false
-    },
-    "[typescript]": {
-      "editor.formatOnSave": true,
-      "editor.defaultFormatter": "denoland.vscode-deno"
-    },
-    "editor.tabSize": 2
+  "deno.enable": true,
+  "deno.lint": true,
+  "deno.config": "./deno.jsonc",
+  "[typescript]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "denoland.vscode-deno"
+  },
+  "deno.suggest.imports.hosts": {
+    "https://deno.land": false
   }
-  
+}
