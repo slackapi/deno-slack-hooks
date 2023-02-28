@@ -6,7 +6,8 @@ import {
 import { getJSON } from "./utilities.ts";
 import { projectScripts } from "./mod.ts";
 import { JSONValue } from "./deps.ts";
-import { getProtocolInterface, Protocol } from "./deps.ts";
+import { getProtocolInterface } from "./protocol/mod.ts";
+import type { Protocol } from "./protocol/types.ts";
 
 export const SDK_NAME = "the Slack SDK";
 
@@ -32,17 +33,17 @@ export interface Update {
  * updatable releases are found, dependency files are updated with the
  * latest dependency versions and the project changes are cached.
  */
-export const updateDependencies = async (walkieTalkie: Protocol) => {
+export const updateDependencies = async (hookCLI: Protocol) => {
   const { releases } = await checkForSDKUpdates();
   const updatableReleases = releases.filter((r) =>
     r.update && r.current && r.latest
   );
-  const updateResp = await createUpdateResp(updatableReleases, walkieTalkie);
+  const updateResp = await createUpdateResp(updatableReleases, hookCLI);
 
   // If no errors occurred during installation, re-build
   // project as a means to cache the changes
   if (!updateResp.error) {
-    walkieTalkie.log(
+    hookCLI.log(
       "install-update successfully updated dependencies, running build hook to cache dependencies...",
     );
     try {
@@ -51,7 +52,7 @@ export const updateDependencies = async (walkieTalkie: Protocol) => {
       // being used, despite its presence and success at this level
       runBuildHook();
     } catch (err) {
-      walkieTalkie.error(
+      hookCLI.error(
         "zomg install-update failed to run build hook to cache deno dependencies!!!",
       );
       updateResp.error = { message: err.message };
@@ -68,7 +69,7 @@ export const updateDependencies = async (walkieTalkie: Protocol) => {
  */
 export async function createUpdateResp(
   releases: Release[],
-  walkieTalkie: Protocol,
+  hookCLI: Protocol,
 ): Promise<InstallUpdateResponse> {
   const updateResp: InstallUpdateResponse = { name: SDK_NAME, updates: [] };
 
@@ -87,7 +88,7 @@ export async function createUpdateResp(
         );
         updateResp.updates = [...updateResp.updates, ...fileUpdateResp];
       } catch (err) {
-        walkieTalkie.error(
+        hookCLI.error(
           "ohnoes install-update errored during updating of dependency files!",
         );
         updateResp.error = updateResp.error
@@ -96,7 +97,7 @@ export async function createUpdateResp(
       }
     }
   } catch (err) {
-    walkieTalkie.error(
+    hookCLI.error(
       "dang nabit! an install-update general error occurred during creation of update response!",
     );
     updateResp.error = { message: err.message };
@@ -200,6 +201,6 @@ function runBuildHook(): void {
 }
 
 if (import.meta.main) {
-  const walkieTalkie = getProtocolInterface(Deno.args);
-  walkieTalkie.respond(JSON.stringify(await updateDependencies(walkieTalkie)));
+  const hookCLI = getProtocolInterface(Deno.args);
+  hookCLI.respond(JSON.stringify(await updateDependencies(hookCLI)));
 }

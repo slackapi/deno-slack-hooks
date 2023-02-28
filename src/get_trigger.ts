@@ -1,7 +1,8 @@
 import { parse, path } from "./deps.ts";
-import { getProtocolInterface, Protocol } from "./deps.ts";
+import { getProtocolInterface } from "./protocol/mod.ts";
+import type { Protocol } from "./protocol/types.ts";
 
-const getTrigger = async (args: string[], walkieTalkie: Protocol) => {
+const getTrigger = async (args: string[], hookCLI: Protocol) => {
   const source = parse(args).source as string;
 
   if (!source) throw new Error("A source path needs to be defined");
@@ -10,15 +11,15 @@ const getTrigger = async (args: string[], walkieTalkie: Protocol) => {
     ? source
     : path.join(Deno.cwd(), source || "");
 
-  return await readFile(fullPath, walkieTalkie);
+  return await readFile(fullPath, hookCLI);
 };
 
-const readFile = async (path: string, walkieTalkie: Protocol) => {
+const readFile = async (path: string, hookCLI: Protocol) => {
   try {
     const { isFile } = await Deno.stat(path);
     if (!isFile) throw new Error("The specified source is not a valid file.");
     if (path.endsWith(".json")) return readJSONFile(path);
-    return readTSFile(path, walkieTalkie);
+    return readTSFile(path, hookCLI);
   } catch (e) {
     if (e instanceof Deno.errors.NotFound) {
       throw new Error("Trigger Definition file cannot be found");
@@ -36,10 +37,10 @@ const readJSONFile = async (path: string) => {
   }
 };
 
-const readTSFile = async (path: string, walkieTalkie: Protocol) => {
-  if (walkieTalkie.install) walkieTalkie.install();
+const readTSFile = async (path: string, hookCLI: Protocol) => {
+  if (hookCLI.install) hookCLI.install();
   const file = await import(`file://${path}`);
-  if (walkieTalkie.uninstall) walkieTalkie.uninstall();
+  if (hookCLI.uninstall) hookCLI.uninstall();
   if (file && !file.default) {
     throw new Error(
       `The Trigger Definition at ${path} isn't being exported by default`,
@@ -49,8 +50,8 @@ const readTSFile = async (path: string, walkieTalkie: Protocol) => {
 };
 
 if (import.meta.main) {
-  const walkieTalkie = getProtocolInterface(Deno.args);
-  walkieTalkie.respond(
-    JSON.stringify(await getTrigger(Deno.args, walkieTalkie)),
+  const hookCLI = getProtocolInterface(Deno.args);
+  hookCLI.respond(
+    JSON.stringify(await getTrigger(Deno.args, hookCLI)),
   );
 }
