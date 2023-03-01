@@ -10,15 +10,13 @@ export const validateAndCreateFunctions = async (
   manifest: any,
   hookCLI: Protocol,
 ) => {
-  if (outputDirectory) {
-    // Clean output dir prior to build
-    if (await removeDirectory(outputDirectory)) {
-      hookCLI.log(`removed directory: ${outputDirectory}`);
-    }
-    // Ensure functions directory exists
-    const functionsPath = path.join(outputDirectory, "functions");
-    await ensureDir(functionsPath);
+  // Clean output dir prior to build
+  if (await removeDirectory(outputDirectory)) {
+    hookCLI.log(`removed directory: ${outputDirectory}`);
   }
+  // Ensure functions directory exists
+  const functionsPath = path.join(outputDirectory, "functions");
+  await ensureDir(functionsPath);
 
   // Find all the run on slack functions
   for (const fnId in manifest.functions) {
@@ -128,6 +126,7 @@ const createFunctionFile = async (
     });
 
     const status = await p.status();
+    p.close();
     if (status.code !== 0 || !status.success) {
       throw new Error(`Error bundling function file: ${fnId}`);
     }

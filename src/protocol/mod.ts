@@ -36,6 +36,7 @@ const MessageBoundaryProtocol = function (args: string[]): Protocol {
     args,
   );
   if (!boundary) throw new Error("no boundary argument provided!");
+  else console.log("got boundary", boundary.split("").join("."));
   const originalConsole = {
     log: globalThis.console.log,
     warn: globalThis.console.warn,
@@ -52,7 +53,7 @@ const MessageBoundaryProtocol = function (args: string[]): Protocol {
     // deno-lint-ignore no-explicit-any
     respond: (data: any) => {
       // TODO: should the boundary only precede the payload, or wrap around both sides?
-      console.log(boundary + "\n" + data);
+      console.log(boundary + data + boundary);
     },
     getCLIFlags:
       () => [`--protocol=${MSG_BOUNDARY_PROTOCOL}`, `--boundary=${boundary}`],

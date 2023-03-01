@@ -125,5 +125,5 @@ if (import.meta.main) {
   const hookCLI = getProtocolInterface(Deno.args);
   const generatedManifest = await createManifest(Deno.cwd(), hookCLI);
   const prunedManifest = cleanManifest(generatedManifest);
-  hookCLI.respond(JSON.stringify(prunedManifest, null, 2));
+  hookCLI.respond(JSON.stringify(prunedManifest));
 }
