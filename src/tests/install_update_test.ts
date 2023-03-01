@@ -1,5 +1,5 @@
 import { assertEquals } from "../dev_deps.ts";
-import { mockFile } from "../dev_deps.ts";
+import { mockFile, MockProtocol } from "../dev_deps.ts";
 import {
   createUpdateResp,
   SDK_NAME,
@@ -64,7 +64,7 @@ Deno.test("update hook tests", async (t) => {
         // Absence of prepareVirtualFile ensures that file does not exist
         // NOTE: *must* go before .prepareVirtualFile-dependent tests below until
         // it's clear how to "unmount" a file. Once it's there.. it's there.
-        const actual = await createUpdateResp(MOCK_RELEASES);
+        const actual = await createUpdateResp(MOCK_RELEASES, MockProtocol());
         const expected = { name: SDK_NAME, updates: [] };
 
         assertEquals(actual, expected);
@@ -97,7 +97,7 @@ Deno.test("update hook tests", async (t) => {
           },
         ];
 
-        const actual = await createUpdateResp(MOCK_RELEASES);
+        const actual = await createUpdateResp(MOCK_RELEASES, MockProtocol());
         const expected = {
           name: SDK_NAME,
           updates: [
