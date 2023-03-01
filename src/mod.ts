@@ -1,5 +1,7 @@
-import { BUILDER_TAG, RUNTIME_TAG } from "./libraries.ts";
+import { RUNTIME_TAG } from "./libraries.ts";
 import { getStartHookAdditionalDenoFlags } from "./flags.ts";
+export { getProtocolInterface } from "./protocol/mod.ts";
+export type { Protocol } from "./protocol/types.ts";
 
 export const projectScripts = (args: string[]) => {
   const startHookFlags = getStartHookAdditionalDenoFlags(args);
@@ -7,11 +9,11 @@ export const projectScripts = (args: string[]) => {
     "runtime": "deno",
     "hooks": {
       "get-manifest":
-        `deno run -q --config=deno.jsonc --allow-read --allow-net --allow-env https://deno.land/x/${BUILDER_TAG}/mod.ts --manifest`,
+        `deno run -q --config=deno.jsonc --allow-read --allow-net --allow-env ${import.meta.url}/../get_manifest.ts`,
       "get-trigger":
         `deno run -q --config=deno.jsonc --allow-read --allow-net --allow-env ${import.meta.url}/../get_trigger.ts`,
       "build":
-        `deno run -q --config=deno.jsonc --allow-read --allow-write --allow-net --allow-run --allow-env https://deno.land/x/${BUILDER_TAG}/mod.ts`,
+        `deno run -q --config=deno.jsonc --allow-read --allow-write --allow-net --allow-run --allow-env ${import.meta.url}/../build.ts`,
       "start":
         `deno run -q --config=deno.jsonc --allow-read --allow-net --allow-run --allow-env https://deno.land/x/${RUNTIME_TAG}/local-run.ts ${startHookFlags}`,
       "check-update":

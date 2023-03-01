@@ -28,7 +28,7 @@ const BaseProtocol = function (args: string[]): Protocol {
 };
 
 /**
- * An example protocol implementation that only uses stdout, but uses message boundaries to differentiate between
+ * Protocol implementation that only uses stdout, but uses message boundaries to differentiate between
  * diagnostic information and hook responses.
  */
 const MessageBoundaryProtocol = function (args: string[]): Protocol {
@@ -36,7 +36,12 @@ const MessageBoundaryProtocol = function (args: string[]): Protocol {
     args,
   );
   if (!boundary) throw new Error("no boundary argument provided!");
-  return {
+  const originalConsole = {
+    log: globalThis.console.log,
+    warn: globalThis.console.warn,
+    error: globalThis.console.error,
+  };
+  const protocol = {
     log: console.log,
     // TODO: `error` could just as easily remain as console.error (i.e stderr) - BUT - we need to ensure that on the CLI side, we stream hook stderr out straight to the user
     // TODO: if we override default console.error functionality (as below), then we also need to implement the `install()` and `uninstall()` methods
@@ -51,7 +56,18 @@ const MessageBoundaryProtocol = function (args: string[]): Protocol {
     },
     getCLIFlags:
       () => [`--protocol=${MSG_BOUNDARY_PROTOCOL}`, `--boundary=${boundary}`],
+    install: () => {
+      globalThis.console.log = protocol.log;
+      globalThis.console.error = protocol.error;
+      globalThis.console.warn = protocol.warn;
+    },
+    uninstall: () => {
+      globalThis.console.log = originalConsole.log;
+      globalThis.console.error = originalConsole.error;
+      globalThis.console.warn = originalConsole.warn;
+    },
   };
+  return protocol;
 };
 
 // A map of protocol names to protocol implementations
