@@ -1,7 +1,6 @@
-import { ensureDir, parse, path } from "./deps.ts";
-import { getProtocolInterface } from "./protocol/mod.ts";
+import { ensureDir, getProtocolInterface, parse, path } from "./deps.ts";
+import type { Protocol } from "./deps.ts";
 import { cleanManifest, createManifest } from "./get_manifest.ts";
-import type { Protocol } from "./protocol/types.ts";
 
 export const validateAndCreateFunctions = async (
   workingDirectory: string,

@@ -5,9 +5,8 @@ import {
 } from "./check_update.ts";
 import { getJSON } from "./utilities.ts";
 import { projectScripts } from "./mod.ts";
-import { JSONValue } from "./deps.ts";
-import { getProtocolInterface } from "./protocol/mod.ts";
-import type { Protocol } from "./protocol/types.ts";
+import { getProtocolInterface, JSONValue } from "./deps.ts";
+import type { Protocol } from "./deps.ts";
 
 export const SDK_NAME = "the Slack SDK";
 

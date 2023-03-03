@@ -1,6 +1,5 @@
-import { deepMerge, path } from "./deps.ts";
-import { getProtocolInterface } from "./protocol/mod.ts";
-import type { Protocol } from "./protocol/types.ts";
+import { deepMerge, getProtocolInterface, path } from "./deps.ts";
+import type { Protocol } from "./deps.ts";
 
 // Responsible for taking a working directory, and an output directory
 // and placing a manifest.json in the root of the output directory

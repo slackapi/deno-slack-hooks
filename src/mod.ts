@@ -1,7 +1,7 @@
 import { RUNTIME_TAG } from "./libraries.ts";
 import { getStartHookAdditionalDenoFlags } from "./flags.ts";
-export { getProtocolInterface } from "./protocol/mod.ts";
-export type { Protocol } from "./protocol/types.ts";
+export { getProtocolInterface } from "./deps.ts";
+export type { Protocol } from "./deps.ts";
 
 export const projectScripts = (args: string[]) => {
   const startHookFlags = getStartHookAdditionalDenoFlags(args);

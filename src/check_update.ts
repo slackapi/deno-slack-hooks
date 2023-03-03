@@ -3,9 +3,8 @@ import {
   DENO_SLACK_HOOKS,
   DENO_SLACK_SDK,
 } from "./libraries.ts";
-import { JSONValue } from "./deps.ts";
+import { getProtocolInterface, JSONValue } from "./deps.ts";
 import { getJSON } from "./utilities.ts";
-import { getProtocolInterface } from "./protocol/mod.ts";
 
 const IMPORT_MAP_SDKS = [DENO_SLACK_SDK, DENO_SLACK_API];
 const SLACK_JSON_SDKS = [
