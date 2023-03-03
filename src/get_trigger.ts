@@ -1,8 +1,7 @@
-import { parse, path } from "./deps.ts";
-import { getProtocolInterface } from "./protocol/mod.ts";
-import type { Protocol } from "./protocol/types.ts";
+import { getProtocolInterface, parse, path } from "./deps.ts";
+import type { Protocol } from "./deps.ts";
 
-const getTrigger = async (args: string[], hookCLI: Protocol) => {
+export const getTrigger = async (args: string[], hookCLI: Protocol) => {
   const source = parse(args).source as string;
 
   if (!source) throw new Error("A source path needs to be defined");
