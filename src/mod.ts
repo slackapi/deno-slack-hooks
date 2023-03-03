@@ -15,7 +15,8 @@ export const projectScripts = (args: string[]) => {
       "build":
         `deno run -q --config=deno.jsonc --allow-read --allow-write --allow-net --allow-run --allow-env ${import.meta.url}/../build.ts`,
       "start":
-        `deno run -q --config=deno.jsonc --allow-read --allow-net --allow-run --allow-env https://deno.land/x/${RUNTIME_TAG}/local-run.ts ${startHookFlags}`,
+        // TODO: once deno-slack-runtime is released with new protocol support, update this URL and the RUNTIME_TAG appropriately.
+        `deno run -q --config=deno.jsonc --allow-read --allow-net --allow-run --allow-env https://raw.githubusercontent.com/slackapi/deno-slack-runtime/protocol-support/src/local-run.ts ${startHookFlags}`,
       "check-update":
         `deno run -q --config=deno.jsonc --allow-read --allow-net ${import.meta.url}/../check_update.ts`,
       "install-update":
