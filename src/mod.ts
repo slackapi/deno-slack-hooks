@@ -1,4 +1,5 @@
-import { RUNTIME_TAG } from "./libraries.ts";
+// TODO: once deno-slack-runtime is released with new protocol support, update this URL and the RUNTIME_TAG appropriately.
+// import { RUNTIME_TAG } from "./libraries.ts";
 import { getStartHookAdditionalDenoFlags } from "./flags.ts";
 export { getProtocolInterface } from "./deps.ts";
 export type { Protocol } from "./deps.ts";
