@@ -99,20 +99,13 @@ async function readImportedManifestFile(filename: string, hookCLI: Protocol) {
   }
 
   let manifestJSFile;
-  // To enable userland logging, in case the negotiated protocol has unique rules
-  // around stdout/stderr usage, we provide the protocol an opportunity to install
-  // itself into the runtime (similar to a test framework using mocking helpers)
-  if (hookCLI.install) hookCLI.install();
   try {
     manifestJSFile = await import(`file://${filename}`);
   } catch (err) {
     // Restore original runtime behaviour by uninstalling any protocol runtime overrides, if necessary
-    if (hookCLI.uninstall) hookCLI.uninstall();
     hookCLI.error(`Error importing ${filename}:\n`, err);
     throw err;
   }
-  // Restore original runtime behaviour by uninstalling any protocol runtime overrides, if necessary
-  if (hookCLI.uninstall) hookCLI.uninstall();
   if (manifestJSFile && manifestJSFile.default) {
     manifestJS = manifestJSFile.default;
   }
