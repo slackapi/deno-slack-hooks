@@ -1,6 +1,5 @@
 import { validateAndCreateFunctions } from "../build.ts";
 import {
-  //assertEquals,
   assertExists,
   assertRejects,
   assertSpyCalls,

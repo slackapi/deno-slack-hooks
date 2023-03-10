@@ -1,7 +1,6 @@
 import { getProtocolInterface, parse, path } from "./deps.ts";
-import type { Protocol } from "./deps.ts";
 
-export const getTrigger = async (args: string[], hookCLI: Protocol) => {
+export const getTrigger = async (args: string[]) => {
   const source = parse(args).source as string;
 
   if (!source) throw new Error("A source path needs to be defined");
@@ -10,15 +9,15 @@ export const getTrigger = async (args: string[], hookCLI: Protocol) => {
     ? source
     : path.join(Deno.cwd(), source || "");
 
-  return await readFile(fullPath, hookCLI);
+  return await readFile(fullPath);
 };
 
-const readFile = async (path: string, hookCLI: Protocol) => {
+const readFile = async (path: string) => {
   try {
     const { isFile } = await Deno.stat(path);
     if (!isFile) throw new Error("The specified source is not a valid file.");
     if (path.endsWith(".json")) return readJSONFile(path);
-    return readTSFile(path, hookCLI);
+    return readTSFile(path);
   } catch (e) {
     if (e instanceof Deno.errors.NotFound) {
       throw new Error("Trigger Definition file cannot be found");
@@ -36,10 +35,8 @@ const readJSONFile = async (path: string) => {
   }
 };
 
-const readTSFile = async (path: string, hookCLI: Protocol) => {
-  if (hookCLI.install) hookCLI.install();
+const readTSFile = async (path: string) => {
   const file = await import(`file://${path}`);
-  if (hookCLI.uninstall) hookCLI.uninstall();
   if (file && !file.default) {
     throw new Error(
       `The Trigger Definition at ${path} isn't being exported by default`,
@@ -51,6 +48,6 @@ const readTSFile = async (path: string, hookCLI: Protocol) => {
 if (import.meta.main) {
   const hookCLI = getProtocolInterface(Deno.args);
   hookCLI.respond(
-    JSON.stringify(await getTrigger(Deno.args, hookCLI)),
+    JSON.stringify(await getTrigger(Deno.args)),
   );
 }
