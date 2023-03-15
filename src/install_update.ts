@@ -6,7 +6,6 @@ import {
 import { getJSON } from "./utilities.ts";
 import { projectScripts } from "./mod.ts";
 import { getProtocolInterface, JSONValue } from "./deps.ts";
-import type { Protocol } from "./deps.ts";
 
 export const SDK_NAME = "the Slack SDK";
 
@@ -32,28 +31,22 @@ export interface Update {
  * updatable releases are found, dependency files are updated with the
  * latest dependency versions and the project changes are cached.
  */
-export const updateDependencies = async (hookCLI: Protocol) => {
+export const updateDependencies = async () => {
   const { releases } = await checkForSDKUpdates();
   const updatableReleases = releases.filter((r) =>
     r.update && r.current && r.latest
   );
-  const updateResp = await createUpdateResp(updatableReleases, hookCLI);
+  const updateResp = await createUpdateResp(updatableReleases);
 
   // If no errors occurred during installation, re-build
   // project as a means to cache the changes
   if (!updateResp.error) {
-    hookCLI.log(
-      "install-update successfully updated dependencies, running build hook to cache dependencies...",
-    );
     try {
       // TODO :: This try/catch should be nested within createUpdateResp
       // but doing so surfaces an issue with the --allow-run flag not
       // being used, despite its presence and success at this level
       runBuildHook();
     } catch (err) {
-      hookCLI.error(
-        "zomg install-update failed to run build hook to cache deno dependencies!!!",
-      );
       updateResp.error = { message: err.message };
     }
   }
@@ -68,7 +61,6 @@ export const updateDependencies = async (hookCLI: Protocol) => {
  */
 export async function createUpdateResp(
   releases: Release[],
-  hookCLI: Protocol,
 ): Promise<InstallUpdateResponse> {
   const updateResp: InstallUpdateResponse = { name: SDK_NAME, updates: [] };
 
@@ -87,18 +79,12 @@ export async function createUpdateResp(
         );
         updateResp.updates = [...updateResp.updates, ...fileUpdateResp];
       } catch (err) {
-        hookCLI.error(
-          "ohnoes install-update errored during updating of dependency files!",
-        );
         updateResp.error = updateResp.error
           ? { message: updateResp.error.message += `\n   ${err.message}` }
           : { message: err.message };
       }
     }
   } catch (err) {
-    hookCLI.error(
-      "dang nabit! an install-update general error occurred during creation of update response!",
-    );
     updateResp.error = { message: err.message };
   }
 
@@ -201,5 +187,5 @@ function runBuildHook(): void {
 
 if (import.meta.main) {
   const hookCLI = getProtocolInterface(Deno.args);
-  hookCLI.respond(JSON.stringify(await updateDependencies(hookCLI)));
+  hookCLI.respond(JSON.stringify(await updateDependencies()));
 }

@@ -1,10 +1,9 @@
 import { deepMerge, getProtocolInterface, path } from "./deps.ts";
-import type { Protocol } from "./deps.ts";
 
 // Responsible for taking a working directory, and an output directory
 // and placing a manifest.json in the root of the output directory
 
-export const createManifest = async (cwd: string, hookCLI: Protocol) => {
+export const createManifest = async (cwd: string) => {
   let foundManifest = false;
   // deno-lint-ignore no-explicit-any
   let manifest: any = {};
@@ -21,13 +20,11 @@ export const createManifest = async (cwd: string, hookCLI: Protocol) => {
   // First check if there's a manifest.ts file
   const manifestTS = await readImportedManifestFile(
     path.join(cwd, "manifest.ts"),
-    hookCLI,
   );
   if (manifestTS === false) {
     // Now check for a manifest.js file
     const manifestJS = await readImportedManifestFile(
       path.join(cwd, "manifest.js"),
-      hookCLI,
     );
     if (manifestJS !== false) {
       manifest = deepMerge(manifest, manifestJS);
@@ -78,7 +75,7 @@ async function readManifestJSONFile(manifestJSONFilePath: string) {
   return manifestJSON;
 }
 
-async function readImportedManifestFile(filename: string, hookCLI: Protocol) {
+async function readImportedManifestFile(filename: string) {
   // Look for manifest.[js|ts] in working directory
   // - if present, default export should be a manifest json object
   // deno-lint-ignore no-explicit-any
@@ -94,14 +91,7 @@ async function readImportedManifestFile(filename: string, hookCLI: Protocol) {
     return false;
   }
 
-  let manifestJSFile;
-  try {
-    manifestJSFile = await import(`file://${filename}`);
-  } catch (err) {
-    // Restore original runtime behaviour by uninstalling any protocol runtime overrides, if necessary
-    hookCLI.error(`Error importing ${filename}:\n`, err);
-    throw err;
-  }
+  const manifestJSFile = await import(`file://${filename}`);
   if (manifestJSFile && manifestJSFile.default) {
     manifestJS = manifestJSFile.default;
   }
@@ -111,7 +101,7 @@ async function readImportedManifestFile(filename: string, hookCLI: Protocol) {
 
 if (import.meta.main) {
   const hookCLI = getProtocolInterface(Deno.args);
-  const generatedManifest = await createManifest(Deno.cwd(), hookCLI);
+  const generatedManifest = await createManifest(Deno.cwd());
   const prunedManifest = cleanManifest(generatedManifest);
   hookCLI.respond(JSON.stringify(prunedManifest));
 }

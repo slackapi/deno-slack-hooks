@@ -7,7 +7,9 @@ export {
 export {
   assertSpyCall,
   assertSpyCalls,
+  returnsNext,
   spy,
+  stub,
 } from "https://deno.land/std@0.177.0/testing/mock.ts";
 export type { Spy } from "https://deno.land/std@0.177.0/testing/mock.ts";
 export * as mockFetch from "https://deno.land/x/mock_fetch@0.3.0/mod.ts";

@@ -10,9 +10,8 @@ export const validateAndCreateFunctions = async (
   hookCLI: Protocol,
 ) => {
   // Clean output dir prior to build
-  if (await removeDirectory(outputDirectory)) {
-    hookCLI.log(`removed directory: ${outputDirectory}`);
-  }
+  await removeDirectory(outputDirectory);
+
   // Ensure functions directory exists
   const functionsPath = path.join(outputDirectory, "functions");
   await ensureDir(functionsPath);
@@ -129,8 +128,6 @@ const createFunctionFile = async (
     if (status.code !== 0 || !status.success) {
       throw new Error(`Error bundling function file: ${fnId}`);
     }
-
-    hookCLI.log(`wrote function file: ${fnFileRelative}`);
   } catch (e) {
     hookCLI.error(`Error bundling function file: ${fnId}`);
     throw e;
@@ -169,7 +166,7 @@ if (import.meta.main) {
     ? source
     : path.join(Deno.cwd(), source || "");
 
-  const generatedManifest = await createManifest(Deno.cwd(), hookCLI);
+  const generatedManifest = await createManifest(Deno.cwd());
   await validateAndCreateFunctions(
     workingDirectory,
     outputDirectory,
@@ -182,5 +179,4 @@ if (import.meta.main) {
     manifestPath,
     JSON.stringify(prunedManifest, null, 2),
   );
-  hookCLI.log(`wrote ${manifestPath}`);
 }

@@ -3,8 +3,8 @@ import {
   assertExists,
   assertRejects,
   assertSpyCalls,
-  assertStringIncludes,
-  Spy,
+  returnsNext,
+  stub,
 } from "../dev_deps.ts";
 import { MockProtocol } from "../dev_deps.ts";
 
@@ -37,15 +37,23 @@ Deno.test("build hook tests", async (t) => {
           },
         };
         const outputDir = await Deno.makeTempDir();
+        // Stub out call to `Deno.run` and fake return a success
+        const runStub = stub(
+          Deno,
+          "run",
+          returnsNext([{
+            close: () => {},
+            status: () => Promise.resolve({ code: 0, success: true }),
+          } as unknown as Deno.Process<Deno.RunOptions>]),
+        );
         await validateAndCreateFunctions(
           Deno.cwd(),
           outputDir,
           manifest,
           hookCLI,
         );
-        const logSpy = hookCLI.log as Spy;
-        assertStringIncludes(logSpy.calls[1].args[0], "wrote function file");
-        assertSpyCalls(logSpy, 2);
+        assertSpyCalls(runStub, 1);
+        runStub.restore();
       },
     );
 
@@ -223,10 +231,17 @@ Deno.test("build hook tests", async (t) => {
         manifest,
         hookCLI,
       );
-      const logSpy = hookCLI.log as Spy;
-      // Assert that we log out that we removed the output directory - but not that we wrote out a function file - and that we only had a single log call.
-      assertStringIncludes(logSpy.calls[0].args[0], "removed directory");
-      assertSpyCalls(logSpy, 1);
+      // Stub out call to `Deno.run` and if invoked, throw an error which should fail the test
+      const runStub = stub(
+        Deno,
+        "run",
+        returnsNext([
+          new Error(
+            "Deno.run should not be invoked, test should fail",
+          ) as unknown as Deno.Process<Deno.RunOptions>,
+        ]),
+      );
+      assertSpyCalls(runStub, 0);
     });
   });
 });

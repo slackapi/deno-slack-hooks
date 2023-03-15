@@ -1,5 +1,5 @@
 import { cleanManifest, createManifest } from "../get_manifest.ts";
-import { assertEquals, assertRejects, MockProtocol } from "../dev_deps.ts";
+import { assertEquals, assertRejects } from "../dev_deps.ts";
 
 Deno.test("get-manifest hook tests", async (t) => {
   await t.step(
@@ -78,9 +78,8 @@ Deno.test("get-manifest hook tests", async (t) => {
     await tt.step(
       "should throw if no manifest JSON, TS or JS found",
       async () => {
-        const hookCLI = MockProtocol();
         await assertRejects(
-          () => createManifest(Deno.cwd(), hookCLI),
+          () => createManifest(Deno.cwd()),
           Error,
           "Could not find a manifest.json, manifest.ts or manifest.js",
         );

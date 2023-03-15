@@ -27,12 +27,8 @@ const readFile = async (path: string) => {
 };
 
 const readJSONFile = async (path: string) => {
-  try {
-    const jsonString = await Deno.readTextFile(path);
-    return JSON.parse(jsonString);
-  } catch (e) {
-    throw e;
-  }
+  const jsonString = await Deno.readTextFile(path);
+  return JSON.parse(jsonString);
 };
 
 const readTSFile = async (path: string) => {
