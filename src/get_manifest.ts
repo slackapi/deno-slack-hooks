@@ -1,4 +1,5 @@
 import { deepMerge, getProtocolInterface, path } from "./deps.ts";
+import { hasDefaultExport } from "./utilities.ts";
 
 // Responsible for taking a working directory, and an output directory
 // and placing a manifest.json in the root of the output directory
@@ -91,10 +92,13 @@ async function readImportedManifestFile(filename: string) {
     return false;
   }
 
-  const manifestJSFile = await import(`file://${filename}`);
-  if (manifestJSFile && manifestJSFile.default) {
-    manifestJS = manifestJSFile.default;
+  const fileURI = `file://${filename}`;
+  if (!await hasDefaultExport(fileURI)) {
+    throw new Error(
+      `File: ${fileURI}, containing your manifest does not define a default export handler.`,
+    );
   }
+  manifestJS = (await import(fileURI)).default;
 
   return manifestJS;
 }

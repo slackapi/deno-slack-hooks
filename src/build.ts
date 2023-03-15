@@ -1,6 +1,7 @@
 import { ensureDir, getProtocolInterface, parse, path } from "./deps.ts";
 import type { Protocol } from "./deps.ts";
 import { cleanManifest, createManifest } from "./get_manifest.ts";
+import { hasDefaultExport } from "./utilities.ts";
 
 export const validateAndCreateFunctions = async (
   workingDirectory: string,
@@ -47,15 +48,6 @@ export const validateAndCreateFunctions = async (
   }
 };
 
-const functionPathHasDefaultExport = async (
-  functionFilePath: string,
-) => {
-  const functionModule = await import(`file://${functionFilePath}`);
-  return functionModule.default
-    ? typeof functionModule.default == "function"
-    : false;
-};
-
 const getValidFunctionPath = async (
   workingDirectory: string,
   fnId: string,
@@ -85,7 +77,7 @@ const getValidFunctionPath = async (
     throw new Error(e);
   }
 
-  if (!await functionPathHasDefaultExport(fnFilePath)) {
+  if (!await hasDefaultExport(fnFilePath)) {
     throw new Error(
       `File: ${fnFilePath}, containing your function does not define a default export handler.`,
     );
