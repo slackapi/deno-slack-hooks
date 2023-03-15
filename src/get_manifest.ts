@@ -72,12 +72,8 @@ async function readManifestJSONFile(manifestJSONFilePath: string) {
     return false;
   }
 
-  try {
-    const jsonString = await Deno.readTextFile(manifestJSONFilePath);
-    manifestJSON = JSON.parse(jsonString);
-  } catch (err) {
-    throw err;
-  }
+  const jsonString = await Deno.readTextFile(manifestJSONFilePath);
+  manifestJSON = JSON.parse(jsonString);
 
   return manifestJSON;
 }
