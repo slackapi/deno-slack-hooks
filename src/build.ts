@@ -10,9 +10,6 @@ export const validateAndCreateFunctions = async (
   manifest: any,
   protocol: Protocol,
 ) => {
-  // Clean output dir prior to build
-  await removeDirectory(outputDirectory);
-
   // Ensure functions directory exists
   const functionsPath = path.join(outputDirectory, "functions");
   await ensureDir(functionsPath);
@@ -20,12 +17,6 @@ export const validateAndCreateFunctions = async (
   // Find all the run on slack functions
   for (const fnId in manifest.functions) {
     const fnDef = manifest.functions[fnId];
-
-    // For now we'll bundle all functions until this is available on a manifest
-    // TODO: add this check back once we add it to the manifest definition
-    // if (fnDef.runtime_environment !== 'slack') {
-    //   continue;
-    // }
 
     //For API type functions, there are no function files.
     if (fnDef.type === "API") {
@@ -154,6 +145,10 @@ if (import.meta.main) {
   const outputDirectory = path.isAbsolute(output)
     ? output
     : path.join(Deno.cwd(), output);
+
+  // Clean output dir prior to build
+  await removeDirectory(outputDirectory);
+
   const workingDirectory = path.isAbsolute(source || "")
     ? source
     : path.join(Deno.cwd(), source || "");
