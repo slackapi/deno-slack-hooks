@@ -1,4 +1,5 @@
 import { getProtocolInterface, parse, path } from "./deps.ts";
+import { getDefaultExport } from "./utilities.ts";
 
 export const getTrigger = async (args: string[]) => {
   const source = parse(args).source as string;
@@ -17,7 +18,7 @@ const readFile = async (path: string) => {
     const { isFile } = await Deno.stat(path);
     if (!isFile) throw new Error("The specified source is not a valid file.");
     if (path.endsWith(".json")) return readJSONFile(path);
-    return readTSFile(path);
+    return await getDefaultExport(path);
   } catch (e) {
     if (e instanceof Deno.errors.NotFound) {
       throw new Error("Trigger Definition file cannot be found");
@@ -29,16 +30,6 @@ const readFile = async (path: string) => {
 const readJSONFile = async (path: string) => {
   const jsonString = await Deno.readTextFile(path);
   return JSON.parse(jsonString);
-};
-
-const readTSFile = async (path: string) => {
-  const file = await import(`file://${path}`);
-  if (file && !file.default) {
-    throw new Error(
-      `The Trigger Definition at ${path} isn't being exported by default`,
-    );
-  }
-  return file.default;
 };
 
 if (import.meta.main) {
