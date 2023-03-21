@@ -16,15 +16,17 @@ export async function getJSON(file: string): Promise<JSONValue> {
 }
 
 /**
- * hasDefaultExport attempts to import the provided file path
- * and returns true if the imported module has a default export. Otherwise,
- * returns false.
+ * Imports the provided file path and returns its default export. Throws an exception if the module
+ * has no default export.
+ * @param {string} functionFilePath - Absolute file path to an importable ECMAScript module
  */
-export async function hasDefaultExport(
+export async function getDefaultExport(
   functionFilePath: string,
-): Promise<boolean> {
+  // deno-lint-ignore no-explicit-any
+): Promise<any> {
   const functionModule = await import(`file://${functionFilePath}`);
-  return functionModule.default
-    ? typeof functionModule.default == "function"
-    : false;
+  if (!functionModule.default) {
+    throw new Error(`No default export handler in file: ${functionFilePath}`);
+  }
+  return functionModule.default;
 }

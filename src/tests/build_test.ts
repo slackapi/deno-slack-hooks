@@ -126,7 +126,7 @@ Deno.test("build hook tests", async (t) => {
               protocol,
             ),
           Error,
-          "default export handler",
+          "default export is not a function",
         );
       },
     );

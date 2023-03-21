@@ -2,7 +2,8 @@
   "$schema": "https://deno.land/x/deno/cli/schemas/config-file.v1.json",
   "fmt": {
     "files": {
-      "include": ["src"]
+      "include": ["src"],
+      "exclude": ["src/tests/fixtures"]
     },
     "options": {
       "semiColons": true,
@@ -15,12 +16,14 @@
   },
   "lint": {
     "files": {
-      "include": ["src"]
+      "include": ["src"],
+      "exclude": ["src/tests/fixtures"]
     }
   },
   "test": {
     "files": {
-      "include": ["src"]
+      "include": ["src"],
+      "exclude": ["src/tests/fixtures"]
     }
   },
   "tasks": {

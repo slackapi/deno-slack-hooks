@@ -1,9 +1,14 @@
 import { deepMerge, getProtocolInterface, path } from "./deps.ts";
-import { hasDefaultExport } from "./utilities.ts";
+import { getDefaultExport } from "./utilities.ts";
 
 // Responsible for taking a working directory, and an output directory
 // and placing a manifest.json in the root of the output directory
 
+/**
+ * Returns a merged manifest object from expected files used to represent an application manifest:
+ * `manifest.json`, `manifest.ts` and `manifest.js`.
+ * @param {string} cwd - Absolute path to the root of an application.
+ */
 export const createManifest = async (cwd: string) => {
   let foundManifest = false;
   // deno-lint-ignore no-explicit-any
@@ -56,6 +61,12 @@ export const cleanManifest = (manifest: any) => {
   return manifest;
 };
 
+/**
+ * Reads and parses an app's `manifest.json` file, and returns its contents. If the file does not exist
+ * or otherwise reading the file fails, returns `false`. If the file contents are invalid JSON, this method
+ * will throw an exception.
+ * @param {string} manifestJSONFilePath - Absolute path to an app's `manifest.json` file.
+ */
 async function readManifestJSONFile(manifestJSONFilePath: string) {
   // deno-lint-ignore no-explicit-any
   let manifestJSON: any = {};
@@ -76,12 +87,16 @@ async function readManifestJSONFile(manifestJSONFilePath: string) {
   return manifestJSON;
 }
 
+/**
+ * Reads and parses an app's manifest file, and returns its contents. The file is expected to be one that the
+ * deno runtime can import, and one that returns a default export. If the file does not exist otherwise reading
+ * the file fails, returns `false`. If the file does not contain a default export, this method will throw and
+ * exception.
+ * @param {string} filename - Absolute path to an app's manifest file, to be imported by the deno runtime.
+ */
 async function readImportedManifestFile(filename: string) {
   // Look for manifest.[js|ts] in working directory
   // - if present, default export should be a manifest json object
-  // deno-lint-ignore no-explicit-any
-  let manifestJS: any = {};
-
   try {
     const { isFile } = await Deno.stat(filename);
 
@@ -92,15 +107,7 @@ async function readImportedManifestFile(filename: string) {
     return false;
   }
 
-  const fileURI = `file://${filename}`;
-  if (!await hasDefaultExport(fileURI)) {
-    throw new Error(
-      `File: ${fileURI}, containing your manifest does not define a default export handler.`,
-    );
-  }
-  manifestJS = (await import(fileURI)).default;
-
-  return manifestJS;
+  return await getDefaultExport(filename);
 }
 
 if (import.meta.main) {
