@@ -349,6 +349,6 @@ export function createFileErrorMsg(
 }
 
 if (import.meta.main) {
-  const hookCLI = getProtocolInterface(Deno.args);
-  hookCLI.respond(JSON.stringify(await checkForSDKUpdates()));
+  const protocol = getProtocolInterface(Deno.args);
+  protocol.respond(JSON.stringify(await checkForSDKUpdates()));
 }

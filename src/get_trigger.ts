@@ -42,8 +42,8 @@ const readTSFile = async (path: string) => {
 };
 
 if (import.meta.main) {
-  const hookCLI = getProtocolInterface(Deno.args);
-  hookCLI.respond(
+  const protocol = getProtocolInterface(Deno.args);
+  protocol.respond(
     JSON.stringify(await getTrigger(Deno.args)),
   );
 }

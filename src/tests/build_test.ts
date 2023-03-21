@@ -17,7 +17,7 @@ Deno.test("build hook tests", async (t) => {
     await tt.step(
       "should not throw an exception when fed a function file that has a default export",
       async () => {
-        const hookCLI = MockProtocol();
+        const protocol = MockProtocol();
         const manifest = {
           "functions": {
             "test_function": {
@@ -50,7 +50,7 @@ Deno.test("build hook tests", async (t) => {
           Deno.cwd(),
           outputDir,
           manifest,
-          hookCLI,
+          protocol,
         );
         assertSpyCalls(runStub, 1);
         runStub.restore();
@@ -60,7 +60,7 @@ Deno.test("build hook tests", async (t) => {
     await tt.step(
       "should throw an exception when fed a function file that does not have a default export",
       async () => {
-        const hookCLI = MockProtocol();
+        const protocol = MockProtocol();
         const manifest = {
           "functions": {
             "test_function": {
@@ -86,7 +86,7 @@ Deno.test("build hook tests", async (t) => {
               Deno.cwd(),
               outputDir,
               manifest,
-              hookCLI,
+              protocol,
             ),
           Error,
           "default export handler",
@@ -97,7 +97,7 @@ Deno.test("build hook tests", async (t) => {
     await tt.step(
       "should throw an exception when fed a function file that has a non-function default export",
       async () => {
-        const hookCLI = MockProtocol();
+        const protocol = MockProtocol();
         const manifest = {
           "functions": {
             "test_function": {
@@ -123,7 +123,7 @@ Deno.test("build hook tests", async (t) => {
               Deno.cwd(),
               outputDir,
               manifest,
-              hookCLI,
+              protocol,
             ),
           Error,
           "default export handler",
@@ -134,7 +134,7 @@ Deno.test("build hook tests", async (t) => {
     await tt.step(
       "should throw an exception when manifest entry for a function points to a non-existent file",
       async () => {
-        const hookCLI = MockProtocol();
+        const protocol = MockProtocol();
         const manifest = {
           "functions": {
             "test_function": {
@@ -160,7 +160,7 @@ Deno.test("build hook tests", async (t) => {
               Deno.cwd(),
               outputDir,
               manifest,
-              hookCLI,
+              protocol,
             ),
           Error,
           "Could not find file",
@@ -171,7 +171,7 @@ Deno.test("build hook tests", async (t) => {
     await tt.step(
       "should throw an exception when manifest entry for a function does not have a source_file defined",
       async () => {
-        const hookCLI = MockProtocol();
+        const protocol = MockProtocol();
         const manifest = {
           "functions": {
             "test_function": {
@@ -195,7 +195,7 @@ Deno.test("build hook tests", async (t) => {
               Deno.cwd(),
               outputDir,
               manifest,
-              hookCLI,
+              protocol,
             ),
           Error,
           "no source_file was provided",
@@ -204,7 +204,7 @@ Deno.test("build hook tests", async (t) => {
     );
 
     await tt.step("should not write out functions of type 'API'", async () => {
-      const hookCLI = MockProtocol();
+      const protocol = MockProtocol();
       const manifest = {
         "functions": {
           "test_function": {
@@ -229,7 +229,7 @@ Deno.test("build hook tests", async (t) => {
         Deno.cwd(),
         outputDir,
         manifest,
-        hookCLI,
+        protocol,
       );
       // Stub out call to `Deno.run` and if invoked, throw an error which should fail the test
       const runStub = stub(

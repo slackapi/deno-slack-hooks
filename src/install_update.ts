@@ -186,6 +186,6 @@ function runBuildHook(): void {
 }
 
 if (import.meta.main) {
-  const hookCLI = getProtocolInterface(Deno.args);
-  hookCLI.respond(JSON.stringify(await updateDependencies()));
+  const protocol = getProtocolInterface(Deno.args);
+  protocol.respond(JSON.stringify(await updateDependencies()));
 }

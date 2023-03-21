@@ -8,7 +8,7 @@ export const validateAndCreateFunctions = async (
   outputDirectory: string,
   // deno-lint-ignore no-explicit-any
   manifest: any,
-  hookCLI: Protocol,
+  protocol: Protocol,
 ) => {
   // Clean output dir prior to build
   await removeDirectory(outputDirectory);
@@ -43,7 +43,7 @@ export const validateAndCreateFunctions = async (
       outputDirectory,
       fnId,
       fnFilePath,
-      hookCLI,
+      protocol,
     );
   }
 };
@@ -89,7 +89,7 @@ const createFunctionFile = async (
   outputDirectory: string,
   fnId: string,
   fnFilePath: string,
-  hookCLI: Protocol,
+  protocol: Protocol,
 ) => {
   const fnFileRelative = path.join("functions", `${fnId}.js`);
   const fnBundledPath = path.join(outputDirectory, fnFileRelative);
@@ -101,7 +101,7 @@ const createFunctionFile = async (
   try {
     denoExecutablePath = Deno.execPath();
   } catch (e) {
-    hookCLI.error("Error calling Deno.execPath()", e);
+    protocol.error("Error calling Deno.execPath()", e);
   }
 
   try {
@@ -121,7 +121,7 @@ const createFunctionFile = async (
       throw new Error(`Error bundling function file: ${fnId}`);
     }
   } catch (e) {
-    hookCLI.error(`Error bundling function file: ${fnId}`);
+    protocol.error(`Error bundling function file: ${fnId}`);
     throw e;
   }
 };
@@ -146,7 +146,7 @@ async function removeDirectory(directoryPath: string): Promise<boolean> {
 }
 
 if (import.meta.main) {
-  const hookCLI = getProtocolInterface(Deno.args);
+  const protocol = getProtocolInterface(Deno.args);
 
   // Massage source and output directories
   let { source, output } = parse(Deno.args);
@@ -163,7 +163,7 @@ if (import.meta.main) {
     workingDirectory,
     outputDirectory,
     generatedManifest,
-    hookCLI,
+    protocol,
   );
   const prunedManifest = cleanManifest(generatedManifest);
   const manifestPath = path.join(outputDirectory, "manifest.json");

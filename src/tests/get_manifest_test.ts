@@ -64,13 +64,13 @@ Deno.test("get-manifest hook tests", async (t) => {
         const cwd = Deno.cwd();
         const f = path.join(cwd, "manifest.json");
         console.log("path is", f);
-        const hookCLI = MockProtocol();
+        const protocol = MockProtocol();
         mockFile.prepareVirtualFile(
           f,
           new TextEncoder().encode(JSON.stringify(manifestJSON)),
           { isFile: true },
         );
-        const resp = await createManifest(cwd, hookCLI);
+        const resp = await createManifest(cwd, protocol);
         assertEquals(resp, manifestJSON);
       },
     );

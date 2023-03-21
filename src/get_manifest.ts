@@ -104,8 +104,8 @@ async function readImportedManifestFile(filename: string) {
 }
 
 if (import.meta.main) {
-  const hookCLI = getProtocolInterface(Deno.args);
+  const protocol = getProtocolInterface(Deno.args);
   const generatedManifest = await createManifest(Deno.cwd());
   const prunedManifest = cleanManifest(generatedManifest);
-  hookCLI.respond(JSON.stringify(prunedManifest));
+  protocol.respond(JSON.stringify(prunedManifest));
 }
