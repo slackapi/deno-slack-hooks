@@ -26,7 +26,7 @@ export async function getDefaultExport(
 ): Promise<any> {
   const functionModule = await import(`file://${functionFilePath}`);
   if (!functionModule.default) {
-    throw new Error(`No default export handler in file: ${functionFilePath}`);
+    throw new Error(`File: ${functionFilePath} has no default export!`);
   }
   return functionModule.default;
 }

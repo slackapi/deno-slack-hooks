@@ -89,7 +89,7 @@ Deno.test("build hook tests", async (t) => {
               protocol,
             ),
           Error,
-          "default export handler",
+          "no default export",
         );
       },
     );

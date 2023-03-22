@@ -124,6 +124,23 @@ Deno.test("get-manifest hook tests", async (t) => {
     );
 
     await tt.step(
+      "should throw if manifest.ts default export is not an object",
+      async () => {
+        await assertRejects(
+          () =>
+            createManifest(
+              path.join(
+                Deno.cwd(),
+                "src/tests/fixtures/manifests/non-object-manifest-ts",
+              ),
+            ),
+          Error,
+          "default export is not an object",
+        );
+      },
+    );
+
+    await tt.step(
       "should return valid manifest.js contents if it solely exists",
       async () => {
         const manifest = await createManifest(
@@ -148,6 +165,23 @@ Deno.test("get-manifest hook tests", async (t) => {
                 "src/tests/fixtures/manifests/invalid-manifest-js",
               ),
             ),
+        );
+      },
+    );
+
+    await tt.step(
+      "should throw if manifest.js default export is not an object",
+      async () => {
+        await assertRejects(
+          () =>
+            createManifest(
+              path.join(
+                Deno.cwd(),
+                "src/tests/fixtures/manifests/non-object-manifest-js",
+              ),
+            ),
+          Error,
+          "default export is not an object",
         );
       },
     );

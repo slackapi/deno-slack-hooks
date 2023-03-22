@@ -34,5 +34,32 @@ Deno.test("get-trigger hook", async (t) => {
       ]);
       assertStringIncludes(json.name, "greeting");
     });
+
+    await tt.step("should throw if provided .ts has no default export", () => {
+      assertRejects(
+        () =>
+          getTrigger([
+            "--source",
+            "src/tests/fixtures/triggers/no_default_export_trigger.ts",
+          ]),
+        Error,
+        "no default export",
+      );
+    });
+
+    await tt.step(
+      "should throw if provided .ts has a non-object default export",
+      () => {
+        assertRejects(
+          () =>
+            getTrigger([
+              "--source",
+              "src/tests/fixtures/triggers/non_object_trigger.ts",
+            ]),
+          Error,
+          "not an object",
+        );
+      },
+    );
   });
 });

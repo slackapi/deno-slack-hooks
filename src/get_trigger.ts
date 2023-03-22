@@ -18,13 +18,18 @@ const readFile = async (path: string) => {
     const { isFile } = await Deno.stat(path);
     if (!isFile) throw new Error("The specified source is not a valid file.");
     if (path.endsWith(".json")) return readJSONFile(path);
-    return await getDefaultExport(path);
   } catch (e) {
     if (e instanceof Deno.errors.NotFound) {
       throw new Error("Trigger Definition file cannot be found");
     }
     throw e;
   }
+  // `getDefaultExport` will throw if no default export exists in module
+  const trigger = await getDefaultExport(path);
+  if (typeof trigger != "object") {
+    throw new Error(`Trigger file: ${path} default export is not an object!`);
+  }
+  return trigger;
 };
 
 const readJSONFile = async (path: string) => {
