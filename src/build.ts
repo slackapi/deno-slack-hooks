@@ -104,6 +104,7 @@ const createFunctionFile = async (
       cmd: [
         denoExecutablePath,
         "bundle",
+        "--quiet",
         fnFilePath,
         fnBundledPath,
       ],
