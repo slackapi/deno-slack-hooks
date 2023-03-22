@@ -1,7 +1,4 @@
-import { Manifest } from "https://deno.land/x/deno_slack_sdk/mod.ts";
-
-export default Manifest({
+export default {
+  display_information: {
   name: "surreptitious-nardwhal-420",
   description: "a valid minimal manifest.ts for testing purposes",
-  icon: "lol.png",
-  botScopes: ["chat.write"]
