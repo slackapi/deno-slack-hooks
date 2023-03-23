@@ -1,4 +1,4 @@
-import { cleanManifest, createManifest } from "../get_manifest.ts";
+import { cleanManifest, getManifest } from "../get_manifest.ts";
 import {
   assertEquals,
   assertRejects,
@@ -57,8 +57,8 @@ Deno.test("get-manifest hook tests", async (t) => {
     },
   );
 
-  await t.step("createManifest function", async (tt) => {
-    // TODO: one of two things need to happen in order to test createManifest out more:
+  await t.step("getManifest function", async (tt) => {
+    // TODO: one of two things need to happen in order to test getManifest out more:
     // 1. need the ability to mock out `Deno.stat` using mock-file (see https://github.com/ayame113/mock-file/issues/7), or
     // 2. we re-write the code in get_manifest.ts to use `Deno.fstat` in place of `Deno.stat`
     // In the mean time, we can use actual files on the actual filesystem, as un-unit-testy as that is,
@@ -66,7 +66,7 @@ Deno.test("get-manifest hook tests", async (t) => {
     await tt.step(
       "should return valid manifest.json contents if it solely exists",
       async () => {
-        const manifest = await createManifest(
+        const manifest = await getManifest(
           path.join(
             Deno.cwd(),
             "src/tests/fixtures/manifests/valid-manifest-json",
@@ -81,7 +81,7 @@ Deno.test("get-manifest hook tests", async (t) => {
       async () => {
         await assertRejects(
           () =>
-            createManifest(
+            getManifest(
               path.join(
                 Deno.cwd(),
                 "src/tests/fixtures/manifests/invalid-manifest-json",
@@ -94,7 +94,7 @@ Deno.test("get-manifest hook tests", async (t) => {
     await tt.step(
       "should return valid manifest.ts contents if it solely exists",
       async () => {
-        const manifest = await createManifest(
+        const manifest = await getManifest(
           path.join(
             Deno.cwd(),
             "src/tests/fixtures/manifests/valid-manifest-ts",
@@ -113,7 +113,7 @@ Deno.test("get-manifest hook tests", async (t) => {
       async () => {
         await assertRejects(
           () =>
-            createManifest(
+            getManifest(
               path.join(
                 Deno.cwd(),
                 "src/tests/fixtures/manifests/invalid-manifest-ts",
@@ -128,7 +128,7 @@ Deno.test("get-manifest hook tests", async (t) => {
       async () => {
         await assertRejects(
           () =>
-            createManifest(
+            getManifest(
               path.join(
                 Deno.cwd(),
                 "src/tests/fixtures/manifests/non-object-manifest-ts",
@@ -143,7 +143,7 @@ Deno.test("get-manifest hook tests", async (t) => {
     await tt.step(
       "should return valid manifest.js contents if it solely exists",
       async () => {
-        const manifest = await createManifest(
+        const manifest = await getManifest(
           path.join(
             Deno.cwd(),
             "src/tests/fixtures/manifests/valid-manifest-js",
@@ -159,7 +159,7 @@ Deno.test("get-manifest hook tests", async (t) => {
       async () => {
         await assertRejects(
           () =>
-            createManifest(
+            getManifest(
               path.join(
                 Deno.cwd(),
                 "src/tests/fixtures/manifests/invalid-manifest-js",
@@ -174,7 +174,7 @@ Deno.test("get-manifest hook tests", async (t) => {
       async () => {
         await assertRejects(
           () =>
-            createManifest(
+            getManifest(
               path.join(
                 Deno.cwd(),
                 "src/tests/fixtures/manifests/non-object-manifest-js",
@@ -190,7 +190,7 @@ Deno.test("get-manifest hook tests", async (t) => {
       "should throw if no manifest JSON, TS or JS found",
       async () => {
         await assertRejects(
-          () => createManifest(Deno.cwd()),
+          () => getManifest(Deno.cwd()),
           Error,
           "Could not find a manifest.json, manifest.ts or manifest.js",
         );

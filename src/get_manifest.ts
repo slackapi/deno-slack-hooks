@@ -6,10 +6,11 @@ import { getDefaultExport } from "./utilities.ts";
 
 /**
  * Returns a merged manifest object from expected files used to represent an application manifest:
- * `manifest.json`, `manifest.ts` and `manifest.js`.
+ * `manifest.json`, `manifest.ts` and `manifest.js`. If both a `json` and `ts`/`js` are present, then
+ * these `ts`/`js` export will be merged over the `json` file.
  * @param {string} cwd - Absolute path to the root of an application.
  */
-export const createManifest = async (cwd: string) => {
+export const getManifest = async (cwd: string) => {
   let foundManifest = false;
   // deno-lint-ignore no-explicit-any
   let manifest: any = {};
@@ -119,7 +120,8 @@ async function readImportedManifestFile(filename: string) {
 
 if (import.meta.main) {
   const protocol = getProtocolInterface(Deno.args);
-  const generatedManifest = await createManifest(Deno.cwd());
+  const generatedManifest = await getManifest(Deno.cwd());
+  // TODO: validate function paths
   const prunedManifest = cleanManifest(generatedManifest);
   protocol.respond(JSON.stringify(prunedManifest));
 }

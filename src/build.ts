@@ -1,7 +1,12 @@
-import { ensureDir, getProtocolInterface, parse, path } from "./deps.ts";
+import {
+  ensureDir,
+  getProtocolInterface,
+  parseCLIArguments,
+  path,
+} from "./deps.ts";
 import type { Protocol } from "./deps.ts";
-import { cleanManifest, createManifest } from "./get_manifest.ts";
-import { getDefaultExport } from "./utilities.ts";
+import { cleanManifest, getManifest } from "./get_manifest.ts";
+import { forEachValidatedManifestFunction } from "./utilities.ts";
 
 export const validateAndCreateFunctions = async (
   workingDirectory: string,
@@ -10,73 +15,22 @@ export const validateAndCreateFunctions = async (
   manifest: any,
   protocol: Protocol,
 ) => {
-  // Ensure functions directory exists
+  // Ensure functions output directory exists
   const functionsPath = path.join(outputDirectory, "functions");
   await ensureDir(functionsPath);
 
-  // Find all the run on slack functions
-  for (const fnId in manifest.functions) {
-    const fnDef = manifest.functions[fnId];
-
-    //For API type functions, there are no function files.
-    if (fnDef.type === "API") {
-      continue;
-    }
-
-    // Always validate function paths
-    const fnFilePath = await getValidFunctionPath(
-      workingDirectory,
-      fnId,
-      fnDef,
-    );
-
-    await createFunctionFile(
-      outputDirectory,
-      fnId,
-      fnFilePath,
-      protocol,
-    );
-  }
-};
-
-const getValidFunctionPath = async (
-  workingDirectory: string,
-  fnId: string,
-  // deno-lint-ignore no-explicit-any
-  fnDef: any,
-) => {
-  if (!fnDef.source_file) {
-    throw new Error(
-      `Run on Slack function provided for ${fnId}, but no source_file was provided.`,
-    );
-  }
-
-  const fnFilePath = path.join(workingDirectory, fnDef.source_file);
-
-  // Make sure it's a file that exists
-  try {
-    const { isFile } = await Deno.stat(fnFilePath);
-    if (!isFile) {
-      throw new Error(`Could not find file: ${fnFilePath}`);
-    }
-  } catch (e) {
-    if (e instanceof Deno.errors.NotFound) {
-      throw new Error(
-        `Could not find file: ${fnFilePath}. Make sure your function definition's "source_file" is relative to your project root.`,
+  await forEachValidatedManifestFunction(
+    workingDirectory,
+    manifest,
+    async (fnId, _fnDef, fnFilePath) => {
+      await createFunctionFile(
+        outputDirectory,
+        fnId,
+        fnFilePath,
+        protocol,
       );
-    }
-    throw new Error(e);
-  }
-
-  // Throws an exception if the file path does not contain a default export.
-  const defaultExport = await getDefaultExport(fnFilePath);
-  if (typeof defaultExport !== "function") {
-    throw new Error(
-      `The function located at ${fnFilePath}'s default export is not a function!`,
-    );
-  }
-
-  return fnFilePath;
+    },
+  );
 };
 
 const createFunctionFile = async (
@@ -144,7 +98,7 @@ if (import.meta.main) {
   const protocol = getProtocolInterface(Deno.args);
 
   // Massage source and output directories
-  let { source, output } = parse(Deno.args);
+  let { source, output } = parseCLIArguments(Deno.args);
   if (!output) output = "dist";
   const outputDirectory = path.isAbsolute(output)
     ? output
@@ -157,7 +111,7 @@ if (import.meta.main) {
     ? source
     : path.join(Deno.cwd(), source || "");
 
-  const generatedManifest = await createManifest(Deno.cwd());
+  const generatedManifest = await getManifest(Deno.cwd());
   await validateAndCreateFunctions(
     workingDirectory,
     outputDirectory,

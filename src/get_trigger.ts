@@ -1,8 +1,8 @@
-import { getProtocolInterface, parse, path } from "./deps.ts";
+import { getProtocolInterface, parseCLIArguments, path } from "./deps.ts";
 import { getDefaultExport } from "./utilities.ts";
 
 export const getTrigger = async (args: string[]) => {
-  const source = parse(args).source as string;
+  const source = parseCLIArguments(args).source as string;
 
   if (!source) throw new Error("A source path needs to be defined");
 

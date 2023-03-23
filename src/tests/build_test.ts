@@ -198,7 +198,7 @@ Deno.test("build hook tests", async (t) => {
               protocol,
             ),
           Error,
-          "no source_file was provided",
+          "No source_file property provided",
         );
       },
     );
