@@ -32,23 +32,15 @@ export async function getDefaultExport(
 }
 
 /**
- * Performs a specified action, encapsulated in a provided callback function, for each function
- * defined in the application manifest. Performs basic validation on each function definition;
- * if any definition fails validation, an exception will be thrown.
+ * Performs basic validation on all function definitions in a manifest; if any definition fails
+ * validation, an exception will be thrown.
  * @param {string} applicationRoot - Absolute path to application root directory.
  * @param {any} manifest - An object representing the application manifest. Should contain a `functions` key that is a map of function IDs to function definitions.
- * @param {(functionID: string, functionDefinition: any, functionFilePath: string) => Promise<void>} callbackFn - A function to be invoked once per defined function present in the application manifest. Arguments provided to this function are: a function ID string, a function definition object, and a validated path to the function's source file.
  */
-export async function forEachValidatedManifestFunction(
+export async function validateManifestFunctions(
   applicationRoot: string,
   // deno-lint-ignore no-explicit-any
   manifest: any,
-  callbackFn?: (
-    functionID: string,
-    // deno-lint-ignore no-explicit-any
-    functionDefinition: any,
-    functionFilePath: string,
-  ) => Promise<void>,
 ): Promise<void> {
   for (const fnId in manifest.functions) {
     const fnDef = manifest.functions[fnId];
@@ -86,11 +78,6 @@ export async function forEachValidatedManifestFunction(
       throw new Error(
         `The function with ID ${fnId} located at ${fnFilePath}'s default export is not a function!`,
       );
-    }
-
-    // Finally, invoke user-provided callback, if provided
-    if (callbackFn) {
-      await callbackFn(fnId, fnDef, fnFilePath);
     }
   }
 }

@@ -1,8 +1,5 @@
 import { deepMerge, getProtocolInterface, path } from "./deps.ts";
-import {
-  forEachValidatedManifestFunction,
-  getDefaultExport,
-} from "./utilities.ts";
+import { getDefaultExport, validateManifestFunctions } from "./utilities.ts";
 
 // Responsible for taking a working directory, and an output directory
 // and placing a manifest.json in the root of the output directory
@@ -126,8 +123,7 @@ async function readImportedManifestFile(filename: string) {
 if (import.meta.main) {
   const protocol = getProtocolInterface(Deno.args);
   const generatedManifest = await getManifest(Deno.cwd());
-  // validate functions referenced in the manifest
-  forEachValidatedManifestFunction(Deno.cwd(), generatedManifest);
+  await validateManifestFunctions(Deno.cwd(), generatedManifest);
   const prunedManifest = cleanManifest(generatedManifest);
   protocol.respond(JSON.stringify(prunedManifest));
 }

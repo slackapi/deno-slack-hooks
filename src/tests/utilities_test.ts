@@ -1,8 +1,8 @@
-import { assertEquals, assertRejects } from "../dev_deps.ts";
-import { forEachValidatedManifestFunction } from "../utilities.ts";
+import { assertRejects } from "../dev_deps.ts";
+import { validateManifestFunctions } from "../utilities.ts";
 
 Deno.test("utilities.ts", async (t) => {
-  await t.step("forEachValidatedManifestFunction function", async (tt) => {
+  await t.step("validateManifestFunctions function", async (tt) => {
     await tt.step(
       "should throw an exception if a function file that does not have a default export",
       async () => {
@@ -26,7 +26,7 @@ Deno.test("utilities.ts", async (t) => {
         };
         await assertRejects(
           () =>
-            forEachValidatedManifestFunction(
+            validateManifestFunctions(
               Deno.cwd(),
               manifest,
             ),
@@ -59,7 +59,7 @@ Deno.test("utilities.ts", async (t) => {
         };
         await assertRejects(
           () =>
-            forEachValidatedManifestFunction(
+            validateManifestFunctions(
               Deno.cwd(),
               manifest,
             ),
@@ -92,7 +92,7 @@ Deno.test("utilities.ts", async (t) => {
         };
         await assertRejects(
           () =>
-            forEachValidatedManifestFunction(
+            validateManifestFunctions(
               Deno.cwd(),
               manifest,
             ),
@@ -123,7 +123,7 @@ Deno.test("utilities.ts", async (t) => {
         };
         await assertRejects(
           () =>
-            forEachValidatedManifestFunction(
+            validateManifestFunctions(
               Deno.cwd(),
               manifest,
             ),
@@ -153,58 +153,11 @@ Deno.test("utilities.ts", async (t) => {
           },
         },
       };
-      await forEachValidatedManifestFunction(
+      await validateManifestFunctions(
         Deno.cwd(),
         manifest,
       );
       // If the above doesn't throw, we good
     });
-
-    await tt.step(
-      "should invoke provided callback, once for each valid function",
-      async () => {
-        const manifest = {
-          "functions": {
-            "test_function_one": {
-              "title": "Test function",
-              "description": "this is a test",
-              "source_file":
-                "src/tests/fixtures/functions/test_function_file.ts",
-              "input_parameters": {
-                "required": [],
-                "properties": {},
-              },
-              "output_parameters": {
-                "required": [],
-                "properties": {},
-              },
-            },
-            "test_function_two": {
-              "title": "Test function",
-              "description": "this is a test",
-              "source_file":
-                "src/tests/fixtures/functions/test_function_file.ts",
-              "input_parameters": {
-                "required": [],
-                "properties": {},
-              },
-              "output_parameters": {
-                "required": [],
-                "properties": {},
-              },
-            },
-          },
-        };
-        let counter = 0;
-        await forEachValidatedManifestFunction(
-          Deno.cwd(),
-          manifest,
-          async () => {
-            await counter++;
-          },
-        );
-        assertEquals(counter, 2);
-      },
-    );
   });
 });

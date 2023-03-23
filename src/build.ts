@@ -6,7 +6,7 @@ import {
 } from "./deps.ts";
 import type { Protocol } from "./deps.ts";
 import { cleanManifest, getManifest } from "./get_manifest.ts";
-import { forEachValidatedManifestFunction } from "./utilities.ts";
+import { validateManifestFunctions } from "./utilities.ts";
 
 export const validateAndCreateFunctions = async (
   workingDirectory: string,
@@ -19,18 +19,25 @@ export const validateAndCreateFunctions = async (
   const functionsPath = path.join(outputDirectory, "functions");
   await ensureDir(functionsPath);
 
-  await forEachValidatedManifestFunction(
+  // Ensure manifest and function userland exists and is valid
+  await validateManifestFunctions(
     workingDirectory,
     manifest,
-    async (fnId, _fnDef, fnFilePath) => {
-      await createFunctionFile(
-        outputDirectory,
-        fnId,
-        fnFilePath,
-        protocol,
-      );
-    },
   );
+
+  // Write out functions to disk
+  for (const fnId in manifest.functions) {
+    const fnFilePath = path.join(
+      workingDirectory,
+      manifest.functions[fnId].source_file,
+    );
+    await createFunctionFile(
+      outputDirectory,
+      fnId,
+      fnFilePath,
+      protocol,
+    );
+  }
 };
 
 const createFunctionFile = async (
