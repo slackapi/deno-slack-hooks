@@ -1,4 +1,8 @@
-import { cleanManifest, getManifest } from "../get_manifest.ts";
+import {
+  cleanManifest,
+  getManifest,
+  getValidateAndCleanManifest,
+} from "../get_manifest.ts";
 import {
   assertEquals,
   assertRejects,
@@ -193,6 +197,76 @@ Deno.test("get-manifest hook tests", async (t) => {
           () => getManifest(Deno.cwd()),
           Error,
           "Could not find a manifest.json, manifest.ts or manifest.js",
+        );
+      },
+    );
+  });
+
+  await t.step("getValidateAndCleanManifest function", async (tt) => {
+    await tt.step(
+      "should throw an exception if a function file does not have a default export",
+      async () => {
+        await assertRejects(
+          () =>
+            getValidateAndCleanManifest(
+              path.join(
+                Deno.cwd(),
+                "src/tests/fixtures/apps/function-no-default-export",
+              ),
+            ),
+          Error,
+          "no default export",
+        );
+      },
+    );
+
+    await tt.step(
+      "should throw an exception if a function file has a non-function default export",
+      async () => {
+        await assertRejects(
+          () =>
+            getValidateAndCleanManifest(
+              path.join(
+                Deno.cwd(),
+                "src/tests/fixtures/apps/non-function-default-export",
+              ),
+            ),
+          Error,
+          "default export is not a function",
+        );
+      },
+    );
+
+    await tt.step(
+      "should throw an exception when manifest entry for a function points to a non-existent file",
+      async () => {
+        await assertRejects(
+          () =>
+            getValidateAndCleanManifest(
+              path.join(
+                Deno.cwd(),
+                "src/tests/fixtures/apps/non-existent-function",
+              ),
+            ),
+          Error,
+          "Could not find file",
+        );
+      },
+    );
+
+    await tt.step(
+      "should throw an exception when manifest entry for a function does not have a source_file defined",
+      async () => {
+        await assertRejects(
+          () =>
+            getValidateAndCleanManifest(
+              path.join(
+                Deno.cwd(),
+                "src/tests/fixtures/apps/missing-source_file",
+              ),
+            ),
+          Error,
+          "No source_file property provided",
         );
       },
     );

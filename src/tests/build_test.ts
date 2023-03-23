@@ -256,7 +256,7 @@ Deno.test("build hook tests", async (t) => {
         "run",
         returnsNext([runResponse, runResponse]),
       );
-      // Make sure we didn't shell out to deno.run
+      // Make sure we didn't shell out to Deno.run
       assertSpyCalls(runStub, 0);
       runStub.restore();
     });

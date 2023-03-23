@@ -1,0 +1,18 @@
+{
+  "functions": {
+    "test_function": {
+      "title": "Test function",
+      "description": "this is a test",
+      "source_file":
+        "functions/test_function_not_function_file.ts",
+      "input_parameters": {
+        "required": [],
+        "properties": {}
+      },
+      "output_parameters": {
+        "required": [],
+        "properties": {}
+      }
+    }
+  }
+}

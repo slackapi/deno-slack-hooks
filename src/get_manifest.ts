@@ -120,10 +120,19 @@ async function readImportedManifestFile(filename: string) {
   return manifest;
 }
 
+/**
+ * Retrieves a merged application manifest, validates the manifest and all its specified functions,
+ * and cleans up any bits from it not relevant for the Slack manifest APIs.
+ * @param {string} applicationRoot - An absolute path to the application root, which presumably contains manifest files.
+ */
+export async function getValidateAndCleanManifest(applicationRoot: string) {
+  const generatedManifest = await getManifest(applicationRoot);
+  await validateManifestFunctions(applicationRoot, generatedManifest);
+  return cleanManifest(generatedManifest);
+}
+
 if (import.meta.main) {
   const protocol = getProtocolInterface(Deno.args);
-  const generatedManifest = await getManifest(Deno.cwd());
-  await validateManifestFunctions(Deno.cwd(), generatedManifest);
-  const prunedManifest = cleanManifest(generatedManifest);
+  const prunedManifest = await getValidateAndCleanManifest(Deno.cwd());
   protocol.respond(JSON.stringify(prunedManifest));
 }

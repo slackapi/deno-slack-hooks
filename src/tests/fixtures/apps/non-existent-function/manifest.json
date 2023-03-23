@@ -1,0 +1,18 @@
+{
+  "functions": {
+    "test_function": {
+      "title": "Test function",
+      "description": "the below source_file actually doesnt exist",
+      "source_file":
+        "functions/i-dont-exist.ts",
+      "input_parameters": {
+        "required": [],
+        "properties": {}
+      },
+      "output_parameters": {
+        "required": [],
+        "properties": {}
+      }
+    }
+  }
+}
