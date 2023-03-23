@@ -1,8 +1,6 @@
 // TODO: as per below TODOs also reuse the appropriate HOOKS tag in the URLs below prior to merge/release
 import { /*HOOKS_TAG*/ RUNTIME_TAG } from "./libraries.ts";
 import { getStartHookAdditionalDenoFlags } from "./flags.ts";
-export { getProtocolInterface } from "./deps.ts";
-export type { Protocol } from "./deps.ts";
 
 export const projectScripts = (args: string[]) => {
   const startHookFlags = getStartHookAdditionalDenoFlags(args);
