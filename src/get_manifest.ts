@@ -9,8 +9,10 @@ import {
 
 /**
  * Returns a merged manifest object from expected files used to represent an application manifest:
- * `manifest.json`, `manifest.ts` and `manifest.js`. If both a `json` and `ts`/`js` are present, then
- * these `ts`/`js` export will be merged over the `json` file.
+ * `manifest.json`, `manifest.ts` and `manifest.js`. If both a `json` and `ts` _or_ `js` are present,
+ * then first the `json` file will be used as a base object, then the `.ts` or the `.js` file export
+ * will be merged over the `json` file. If a `.ts` file exists, the `.js` will be ignored. Otherwise,
+ * the `.js` file will be merged over the `.json`.
  * @param {string} cwd - Absolute path to the root of an application.
  */
 export const getManifest = async (cwd: string) => {

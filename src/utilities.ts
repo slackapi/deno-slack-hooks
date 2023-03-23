@@ -37,7 +37,7 @@ export async function getDefaultExport(
  * if any definition fails validation, an exception will be thrown.
  * @param {string} applicationRoot - Absolute path to application root directory.
  * @param {any} manifest - An object representing the application manifest. Should contain a `functions` key that is a map of function IDs to function definitions.
- * @param {(functionID: string, functionDefinition: any) => Promise<void>} callbackFn - A function to be invoked once per defined function present in the application manifest. Arguments provided to this function are: a function ID string, a function definition object, and a validated path to the function's source file.
+ * @param {(functionID: string, functionDefinition: any, functionFilePath: string) => Promise<void>} callbackFn - A function to be invoked once per defined function present in the application manifest. Arguments provided to this function are: a function ID string, a function definition object, and a validated path to the function's source file.
  */
 export async function forEachValidatedManifestFunction(
   applicationRoot: string,
