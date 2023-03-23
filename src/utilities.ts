@@ -43,7 +43,7 @@ export async function forEachValidatedManifestFunction(
   applicationRoot: string,
   // deno-lint-ignore no-explicit-any
   manifest: any,
-  callbackFn: (
+  callbackFn?: (
     functionID: string,
     // deno-lint-ignore no-explicit-any
     functionDefinition: any,
@@ -88,7 +88,9 @@ export async function forEachValidatedManifestFunction(
       );
     }
 
-    // Finally, invoke user-provided callback
-    await callbackFn(fnId, fnDef, fnFilePath);
+    // Finally, invoke user-provided callback, if provided
+    if (callbackFn) {
+      await callbackFn(fnId, fnDef, fnFilePath);
+    }
   }
 }
