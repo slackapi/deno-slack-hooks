@@ -4,40 +4,53 @@ This library is intended to be used in applications running on Slack's next-gene
 units of functionality encapsulated as ephemeral functions. It implements the communication contract between the
 [Slack CLI][cli] and any Slack app development SDKs.
 
+## Overview
+
+This library enables inter-process communication between the [Slack CLI tool][cli] and apps authored for Slack's
+[next-generation platform][nextgen]. The CLI delegates various tasks to the application SDK by means of invoking
+a process and expecting specific kinds of responses in the process' resultant stdout. For a full list of these
+tasks, check out the [Supported Scripts](#supported-scripts) section.
+
 ## Requirements
 
 This library requires a recent (at least 1.22) version of [deno](https://deno.land).
 
-Any invocations of this library require the `--allow-read` and `--allow-net` [deno permissions](https://deno.land/manual/getting_started/permissions).
+Any invocations of this library require additional [deno permissions](https://deno.land/manual/getting_started/permissions), depending on which of the [Supported Scripts](#supported-scripts) is being invoked.
 
 ## Supported Scripts
+
 The hooks currently provided by this repo are `build`, `start`, `check-update`, `install-update`, `get-trigger`, and `get-manifest`.
 
 | Hook Name         | CLI Command            | Description                     |
 | ----------------- | ---------------------- | ------------------------------- |
-| `build`           | `slack deploy`         | Bundles any functions with Deno into an output directory that's compatible with the Run on Slack runtime. For more information, see the [deno-slack-builder](https://github.com/slackapi/deno-slack-builder) repository. |
-| `check-update`    | `slack upgrade`        | Checks the App's SDK dependencies to determine whether or not any of your libraries need to be updated. |
-| `get-manifest`    | `slack manifest`       | Converts a `manifest.json`, `manifest.js`, or `manifest.ts` file int o a valid manifest JSON payload. For more information, see the [deno-slack-builder](https://github.com/slackapi/deno-slack-builder) repository's `--manifest` arg. |
-| `get-hooks`       | N/A                    | Fetches the list of available hooks for the CLI from this repository. |
-| `get-trigger`     | `slack trigger create` | Converts a specified `json`, `js`, or `ts` file into a valid trigger JSON payload to be uploaded by the CLI to the `workflows.triggers.create` Slack API endpoint. |
-| `install-update`  | `slack upgrade`        | Prompts the user to automatically update any dependencies that need to be updated based on the result of the `check-update` hook. |
+| `build`           | `slack deploy`         | Bundles any functions with Deno into an output directory that's compatible with the Run on Slack runtime. Implemented in `build.ts`. |
+| `check-update`    | `slack upgrade`        | Checks the App's SDK dependencies to determine whether or not any of your libraries need to be updated. Implemented in `check_update.ts`. |
+| `get-manifest`    | `slack manifest`       | Converts a `manifest.json`, `manifest.js`, or `manifest.ts` file into a valid manifest JSON payload. Implemented in `get_manifest.ts`. |
+| `get-hooks`       | All                    | Fetches the list of available hooks for the CLI from this repository. Implemented in `mod.ts`. |
+| `get-trigger`     | `slack trigger create` | Converts a specified `json`, `js`, or `ts` file into a valid trigger JSON payload to be uploaded by the CLI to the `workflows.triggers.create` Slack API endpoint. Implemented in `get_trigger.ts`. |
+| `install-update`  | `slack upgrade`        | Prompts the user to automatically update any dependencies that need to be updated based on the result of the `check-update` hook. Implemented in `install_update.ts`. |
 | `start`           | `slack run`            | While developing and locally running a deno-slack-based application, the CLI manages a socket connection with Slack's backend and delegates to this hook for invoking the correct application function for relevant events incoming via this connection. For more information, see the [deno-slack-runtime](https://github.com/slackapi/deno-slack-runtime) repository's details on `local-run`. |
 
-
 ### Check Update Script Usage
+
 The `check_update.ts` file is executed as a Deno program and takes no arguments.
 
 #### Example
+
 ```bash
 deno run -q --config=deno.jsonc --allow-read --allow-net https://deno.land/x/deno_slack_hooks/check_update.ts
 ```
+
 ### Get Hooks Script Usage
+
 The `mod.ts` file is executed as a Deno program and takes no arguments.
 
 #### Example
+
 ```bash
 deno run -q --config=deno.jsonc --allow-read --allow-net https://deno.land/x/deno_slack_hooks/mod.ts
 ```
+
 ### Get Trigger Script Usage
 
 The `get_trigger.ts` file is executed as a Deno program and takes one required argument:
@@ -46,19 +59,22 @@ The `get_trigger.ts` file is executed as a Deno program and takes one required a
 | ---------- | ----------------------------------------------------- |
 | `--source` | Absolute or relative path to your target trigger file. The trigger object must be exported as default from this file. |
 
-
 #### Example
+
 ```bash
 deno run -q --config=deno.jsonc --allow-read --allow-net https://deno.land/x/deno_slack_hooks/get_trigger.ts --source="./trigger.ts"
 ```
 
 ### Install Update Script Usage
+
 The `install_update.ts` file is executed as a Deno program and takes no arguments.
 
 #### Example
+
 ```bash
 deno run -q --config=deno.jsonc --allow-run --allow-read --allow-write --allow-net https://deno.land/x/deno_slack_hooks/install_update.ts
 ```
+
 ## Script Overrides Usage
 
 If you find yourself needing to override a hook script specified by this library, you can do so in your Slack app's `/slack.json` file! Just specify a new script for the hook in question. All supported hooks can be overwritten.
@@ -97,3 +113,4 @@ We welcome contributions from everyone! Please check out our
 helpful and collaborative way.
 
 [cli]: https://github.com/slackapi/slack-cli
+[nextgen]: https://api.slack.com/future
