@@ -1,0 +1,16 @@
+{
+  "functions": {
+    "test_function": {
+      "title": "Test function",
+      "description": "this function definition doesnt even have a source_file",
+      "input_parameters": {
+        "required": [],
+        "properties": {}
+      },
+      "output_parameters": {
+        "required": [],
+        "properties": {}
+      }
+    }
+  }
+}

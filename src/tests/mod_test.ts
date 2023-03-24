@@ -1,11 +1,14 @@
+// TODO: once deno-slack-runtime is released with new protocol support, uncomment this test.
+/*
 import { assertStringIncludes } from "../dev_deps.ts";
-import hooksVersion from "../version.ts";
+import { VERSIONS } from "../libraries.ts";
 import { projectScripts } from "../mod.ts";
 
-Deno.test("projectScripts should return a check-update hook that points to its own version", () => {
+Deno.test("projectScripts should return a start hook that points to the enshrined deno-slack-runtime version", () => {
   const result = projectScripts([]);
   assertStringIncludes(
-    result.hooks["check-update"],
-    `deno_slack_hooks@${hooksVersion}/check_update.ts`,
+    result.hooks["start"],
+    `deno_slack_runtime@${VERSIONS.deno_slack_runtime}/local-run.ts`,
   );
 });
+*/

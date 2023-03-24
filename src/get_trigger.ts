@@ -1,7 +1,8 @@
-import { parse, path } from "./deps.ts";
+import { getProtocolInterface, parseCLIArguments, path } from "./deps.ts";
+import { getDefaultExport } from "./utilities.ts";
 
-const getTrigger = async () => {
-  const source = parse(Deno.args).source as string;
+export const getTrigger = async (args: string[]) => {
+  const source = parseCLIArguments(args).source as string;
 
   if (!source) throw new Error("A source path needs to be defined");
 
@@ -17,36 +18,28 @@ const readFile = async (path: string) => {
     const { isFile } = await Deno.stat(path);
     if (!isFile) throw new Error("The specified source is not a valid file.");
     if (path.endsWith(".json")) return readJSONFile(path);
-    return readTSFile(path);
   } catch (e) {
     if (e instanceof Deno.errors.NotFound) {
       throw new Error("Trigger Definition file cannot be found");
     }
     throw e;
   }
+  // `getDefaultExport` will throw if no default export exists in module
+  const trigger = await getDefaultExport(path);
+  if (typeof trigger != "object") {
+    throw new Error(`Trigger file: ${path} default export is not an object!`);
+  }
+  return trigger;
 };
 
 const readJSONFile = async (path: string) => {
-  try {
-    const jsonString = await Deno.readTextFile(path);
-    return JSON.parse(jsonString);
-  } catch (e) {
-    throw e;
-  }
-};
-
-const readTSFile = async (path: string) => {
-  try {
-    const file = await import(`file://${path}`);
-    if (file && !file.default) {
-      throw new Error("The Trigger Definition isn't being exported by default");
-    }
-    return file.default;
-  } catch (e) {
-    throw e;
-  }
+  const jsonString = await Deno.readTextFile(path);
+  return JSON.parse(jsonString);
 };
 
 if (import.meta.main) {
-  console.log(JSON.stringify(await getTrigger()));
+  const protocol = getProtocolInterface(Deno.args);
+  protocol.respond(
+    JSON.stringify(await getTrigger(Deno.args)),
+  );
 }

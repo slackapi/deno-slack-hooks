@@ -5,7 +5,7 @@ import {
 } from "./check_update.ts";
 import { getJSON } from "./utilities.ts";
 import { projectScripts } from "./mod.ts";
-import { JSONValue } from "./deps.ts";
+import { getProtocolInterface, JSONValue } from "./deps.ts";
 
 export const SDK_NAME = "the Slack SDK";
 
@@ -186,5 +186,6 @@ function runBuildHook(): void {
 }
 
 if (import.meta.main) {
-  console.log(JSON.stringify(await updateDependencies()));
+  const protocol = getProtocolInterface(Deno.args);
+  protocol.respond(JSON.stringify(await updateDependencies()));
 }
