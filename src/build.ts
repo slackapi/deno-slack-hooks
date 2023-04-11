@@ -27,9 +27,14 @@ export const validateAndCreateFunctions = async (
 
   // Write out functions to disk
   for (const fnId in manifest.functions) {
+    const fnDef = manifest.functions[fnId];
+    // For API type functions, there are no function files.
+    if (fnDef.type === "API") {
+      continue;
+    }
     const fnFilePath = path.join(
       workingDirectory,
-      manifest.functions[fnId].source_file,
+      fnDef.source_file,
     );
     await createFunctionFile(
       outputDirectory,

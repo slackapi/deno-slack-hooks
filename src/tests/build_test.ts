@@ -48,6 +48,21 @@ Deno.test("build hook tests", async (t) => {
                 "properties": {},
               },
             },
+            "api_function_that_should_not_be_built": {
+              "type": "API",
+              "title": "API function",
+              "description": "should most definitely not be bundled",
+              "source_file":
+                "src/tests/fixtures/functions/this_shouldnt_matter.ts",
+              "input_parameters": {
+                "required": [],
+                "properties": {},
+              },
+              "output_parameters": {
+                "required": [],
+                "properties": {},
+              },
+            },
           },
         };
         const outputDir = await Deno.makeTempDir();
