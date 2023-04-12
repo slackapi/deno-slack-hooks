@@ -1,2 +1,2 @@
-// Consumed in the build and get-manifest hook tests as well as utilties tests
+// Consumed in the build and get-manifest hook tests as well as utilities tests
 export default "hello";
