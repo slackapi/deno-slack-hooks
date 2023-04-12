@@ -14,11 +14,15 @@ You will need [Deno](https://deno.land).
 
 This package has unit tests in the `src/tests` directory. You can run the entire test suite (along with linting and formatting) via:
 
-    deno task test
+```zsh
+deno task test
+```
 
 To run the tests along with a coverage report:
 
-    deno task coverage
+```zsh
+deno task coverage
+```
 
 This command is also executed by GitHub Actions, the continuous integration service, for every Pull Request and branch.
 
@@ -90,7 +94,6 @@ Labels are used to run issues through an organized workflow. Here are the basic 
 *  `security`: An issue that has special consideration for security reasons.
 *  `good first contribution`: An issue that has a well-defined relatively-small scope, with clear expectations. It helps when the testing approach is also known.
 *  `duplicate`: An issue that is functionally the same as another issue. Apply this only if you've linked the other issue by number.
-
 
 **Triage** is the process of taking new issues that aren't yet "seen" and marking them with a basic
 level of information with labels. An issue should have **one** of the following labels applied:

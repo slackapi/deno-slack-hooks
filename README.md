@@ -79,7 +79,7 @@ deno run -q --config=deno.jsonc --allow-run --allow-read --allow-write --allow-n
 
 If you find yourself needing to override a hook script specified by this library, you can do so in your Slack app's `/slack.json` file! Just specify a new script for the hook in question. All supported hooks can be overwritten.
 
-Below is an example `/slack.json` file that overrides the `build` script to point to your local repo for development purposes. It's using an implicit "latest" version of the https://deno.land/x/deno_slack_hooks/mod.ts script, but we suggest pinning it to whatever the latest version is.
+Below is an example `/slack.json` file that overrides the `build` script to point to your local repo for development purposes. It's using an implicit "latest" version of the <https://deno.land/x/deno_slack_hooks/mod.ts> script, but we suggest pinning it to whatever the latest version is.
 
 ```json
 {
@@ -93,16 +93,6 @@ Below is an example `/slack.json` file that overrides the `build` script to poin
 The [Slack CLI][cli] will automatically know to pick up your local hook definition and use that instead of what's defined by this library.
 
 This can also be used to change the flags sent to the `deno run` command if you decide to change the location of your config file, or switch to an import map instead.
-
-## Running Tests
-
-If you make changes to this repo, or just want to make sure things are working as desired, you can run:
-
-    deno task test
-
-To get a full test coverage report, run:
-
-    deno task coverage
 
 ---
 
