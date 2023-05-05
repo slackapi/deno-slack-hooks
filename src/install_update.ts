@@ -45,7 +45,7 @@ export const updateDependencies = async () => {
       // TODO :: This try/catch should be nested within createUpdateResp
       // but doing so surfaces an issue with the --allow-run flag not
       // being used, despite its presence and success at this level
-      runBuildHook();
+      await runBuildHook();
     } catch (err) {
       updateResp.error = { message: err.message };
     }
