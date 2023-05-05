@@ -66,15 +66,19 @@ Deno.test("build hook tests", async (t) => {
           },
         };
         const outputDir = await Deno.makeTempDir();
-        // Stub out call to `Deno.run` and fake return a success
-        const runResponse = {
-          close: () => {},
-          status: () => Promise.resolve({ code: 0, success: true }),
-        } as unknown as Deno.Process<Deno.RunOptions>;
-        const runStub = stub(
+        // Stub out call to `Deno.Command` and fake return a success
+        const commandResponse = {
+          spawn: () => {
+            return {
+              kill: () => {},
+              status: Promise.resolve({ code: 0, success: true }),
+            };
+          },
+        } as Deno.Command;
+        const commandStub = stub(
           Deno,
-          "run",
-          returnsNext([runResponse, runResponse]),
+          "Command",
+          returnsNext([commandResponse, commandResponse]),
         );
         await validateAndCreateFunctions(
           Deno.cwd(),
@@ -82,8 +86,8 @@ Deno.test("build hook tests", async (t) => {
           manifest,
           protocol,
         );
-        assertSpyCalls(runStub, 2);
-        runStub.restore();
+        assertSpyCalls(commandStub, 2);
+        commandStub.restore();
       },
     );
 
@@ -261,19 +265,23 @@ Deno.test("build hook tests", async (t) => {
         manifest,
         protocol,
       );
-      // Stub out call to `Deno.run` and fake return a success
-      const runResponse = {
-        close: () => {},
-        status: () => Promise.resolve({ code: 0, success: true }),
-      } as unknown as Deno.Process<Deno.RunOptions>;
-      const runStub = stub(
+      // Stub out call to `Deno.Command` and fake return a success
+      const commandResponse = {
+        spawn: () => {
+          return {
+            kill: () => {},
+            status: Promise.resolve({ code: 0, success: true }),
+          };
+        },
+      } as Deno.Command;
+      const commandStub = stub(
         Deno,
-        "run",
-        returnsNext([runResponse, runResponse]),
+        "Command",
+        returnsNext([commandResponse, commandResponse]),
       );
-      // Make sure we didn't shell out to Deno.run
-      assertSpyCalls(runStub, 0);
-      runStub.restore();
+      // Make sure we didn't shell out to Deno.Command
+      assertSpyCalls(commandStub, 0);
+      commandStub.restore();
     });
   });
 });

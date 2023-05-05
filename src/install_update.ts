@@ -175,11 +175,14 @@ export function updateDependencyMap(
  * `install-update`, this is in order to cache the dependency version
  * updates that occurred.
  */
-function runBuildHook(): void {
+async function runBuildHook(): Promise<void> {
   try {
     const { hooks: { build } } = projectScripts([]);
-    const buildArgs = build.split(" ");
-    Deno.run({ cmd: buildArgs });
+    const [denoExecutablePath, ...buildArgs] = build.split(" ");
+    const commander = new Deno.Command(denoExecutablePath, { args: buildArgs });
+    const subprocess = commander.spawn();
+    await subprocess.status;
+    subprocess.kill();
   } catch (err) {
     throw new Error(err);
   }
