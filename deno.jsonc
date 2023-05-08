@@ -18,6 +18,10 @@
     "files": {
       "include": ["src"],
       "exclude": ["src/tests/fixtures"]
+    },
+    "rules": {
+      // [TODO]: Remove exclusion after we remove Deno.run
+      "exclude": ["no-deprecated-deno-api"]
     }
   },
   "test": {
