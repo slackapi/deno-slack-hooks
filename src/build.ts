@@ -1,6 +1,6 @@
 import * as path from "jsr:@std/path@^1.0.3";
 import { parseArgs } from "jsr:@std/cli@^1.0.4";
-import { ensureDir } from "jsr:@std/fs@^1.0.2";
+import { ensureDir, copySync } from "jsr:@std/fs@^1.0.2";
 import { getProtocolInterface } from "https://deno.land/x/deno_slack_protocols@0.0.2/mod.ts";
 import type { Protocol } from "https://deno.land/x/deno_slack_protocols@0.0.2/types.ts";
 
@@ -152,4 +152,6 @@ if (import.meta.main) {
     manifestPath,
     JSON.stringify(prunedManifest, null, 2),
   );
+  const outputAssetsDir = path.join(outputDirectory, "assets");
+  copySync(path.join(workingDirectory, "assets"), outputAssetsDir);
 }
