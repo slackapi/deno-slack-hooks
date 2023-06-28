@@ -1,4 +1,5 @@
 import {
+  copySync,
   ensureDir,
   getProtocolInterface,
   parseCLIArguments,
@@ -136,4 +137,6 @@ if (import.meta.main) {
     manifestPath,
     JSON.stringify(prunedManifest, null, 2),
   );
+  const outputAssetsDir = path.join(outputDirectory, "assets");
+  copySync(path.join(workingDirectory, "assets"), outputAssetsDir);
 }
