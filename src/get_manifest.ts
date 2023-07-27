@@ -133,6 +133,14 @@ export async function getValidateAndCleanManifest(applicationRoot: string) {
 
 if (import.meta.main) {
   const protocol = getProtocolInterface(Deno.args);
-  const prunedManifest = await getValidateAndCleanManifest(Deno.cwd());
-  protocol.respond(JSON.stringify(prunedManifest));
+  try {
+    const prunedManifest = await getValidateAndCleanManifest(Deno.cwd());
+    protocol.respond(JSON.stringify(prunedManifest));
+  } catch (error) {
+    if (error instanceof Error) {
+      protocol.error(error);
+    } else {
+      throw error;
+    }
+  }
 }
