@@ -66,24 +66,24 @@ Deno.test("build hook tests", async (t) => {
           },
         };
         const outputDir = await Deno.makeTempDir();
-        // Stub out call to `Deno.run` and fake return a success
-        const runResponse = {
-          close: () => {},
-          status: () => Promise.resolve({ code: 0, success: true }),
-        } as unknown as Deno.Process<Deno.RunOptions>;
-        const runStub = stub(
+        // Stub out call to `Deno.writeTextFile` and fake return a success
+        const writeTextFileResponse = Promise.resolve();
+        const writeTextFileStub = stub(
           Deno,
-          "run",
-          returnsNext([runResponse, runResponse]),
+          "writeTextFile",
+          returnsNext([writeTextFileResponse, writeTextFileResponse]),
         );
-        await validateAndCreateFunctions(
-          Deno.cwd(),
-          outputDir,
-          manifest,
-          protocol,
-        );
-        assertSpyCalls(runStub, 2);
-        runStub.restore();
+        try {
+          await validateAndCreateFunctions(
+            Deno.cwd(),
+            outputDir,
+            manifest,
+            protocol,
+          );
+          assertSpyCalls(writeTextFileStub, 2);
+        } finally {
+          writeTextFileStub.restore();
+        }
       },
     );
 
@@ -262,18 +262,23 @@ Deno.test("build hook tests", async (t) => {
         protocol,
       );
       // Stub out call to `Deno.run` and fake return a success
-      const runResponse = {
-        close: () => {},
-        status: () => Promise.resolve({ code: 0, success: true }),
-      } as unknown as Deno.Process<Deno.RunOptions>;
-      const runStub = stub(
+      const writeTextFileResponse = Promise.resolve();
+      const writeTextFileStub = stub(
         Deno,
-        "run",
-        returnsNext([runResponse, runResponse]),
+        "writeTextFile",
+        returnsNext([writeTextFileResponse, writeTextFileResponse]),
       );
-      // Make sure we didn't shell out to Deno.run
-      assertSpyCalls(runStub, 0);
-      runStub.restore();
+      try {
+        await validateAndCreateFunctions(
+          Deno.cwd(),
+          outputDir,
+          manifest,
+          protocol,
+        );
+        assertSpyCalls(writeTextFileStub, 0);
+      } finally {
+        writeTextFileStub.restore();
+      }
     });
   });
 });

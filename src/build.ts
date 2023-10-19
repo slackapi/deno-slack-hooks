@@ -1,4 +1,5 @@
 import {
+  bundle,
   ensureDir,
   getProtocolInterface,
   parseCLIArguments,
@@ -54,33 +55,9 @@ const createFunctionFile = async (
   const fnFileRelative = path.join("functions", `${fnId}.js`);
   const fnBundledPath = path.join(outputDirectory, fnFileRelative);
 
-  // We'll default to just using whatever Deno executable is on the path
-  // Ideally we should be able to rely on Deno.execPath() so we make sure to bundle with the same version of Deno
-  // that called this script. This is perhaps a bit overly cautious, so we can look to remove the defaulting here in the future.
-  let denoExecutablePath = "deno";
   try {
-    denoExecutablePath = Deno.execPath();
-  } catch (e) {
-    protocol.error("Error calling Deno.execPath()", e);
-  }
-
-  try {
-    // call out to deno to handle bundling
-    const p = Deno.run({
-      cmd: [
-        denoExecutablePath,
-        "bundle",
-        "--quiet",
-        fnFilePath,
-        fnBundledPath,
-      ],
-    });
-
-    const status = await p.status();
-    p.close();
-    if (status.code !== 0 || !status.success) {
-      throw new Error(`Error bundling function file: ${fnId}`);
-    }
+    const result = await bundle(fnFilePath, { allowRemote: true });
+    await Deno.writeTextFile(fnBundledPath, result.code);
   } catch (e) {
     protocol.error(`Error bundling function file: ${fnId}`);
     throw e;
