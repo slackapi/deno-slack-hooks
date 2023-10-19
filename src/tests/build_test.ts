@@ -66,12 +66,12 @@ Deno.test("build hook tests", async (t) => {
           },
         };
         const outputDir = await Deno.makeTempDir();
-        // Stub out call to `Deno.writeTextFile` and fake return a success
-        const writeTextFileResponse = Promise.resolve();
-        const writeTextFileStub = stub(
+        // Stub out call to `Deno.writeFile` and fake return a success
+        const writeFileResponse = Promise.resolve();
+        const writeFileStub = stub(
           Deno,
-          "writeTextFile",
-          returnsNext([writeTextFileResponse, writeTextFileResponse]),
+          "writeFile",
+          returnsNext([writeFileResponse, writeFileResponse]),
         );
         try {
           await validateAndCreateFunctions(
@@ -80,9 +80,9 @@ Deno.test("build hook tests", async (t) => {
             manifest,
             protocol,
           );
-          assertSpyCalls(writeTextFileStub, 2);
+          assertSpyCalls(writeFileStub, 2);
         } finally {
-          writeTextFileStub.restore();
+          writeFileStub.restore();
         }
       },
     );
@@ -262,11 +262,11 @@ Deno.test("build hook tests", async (t) => {
         protocol,
       );
       // Stub out call to `Deno.run` and fake return a success
-      const writeTextFileResponse = Promise.resolve();
-      const writeTextFileStub = stub(
+      const writeFileResponse = Promise.resolve();
+      const writeFileStub = stub(
         Deno,
-        "writeTextFile",
-        returnsNext([writeTextFileResponse, writeTextFileResponse]),
+        "writeFile",
+        returnsNext([writeFileResponse, writeFileResponse]),
       );
       try {
         await validateAndCreateFunctions(
@@ -275,9 +275,9 @@ Deno.test("build hook tests", async (t) => {
           manifest,
           protocol,
         );
-        assertSpyCalls(writeTextFileStub, 0);
+        assertSpyCalls(writeFileStub, 0);
       } finally {
-        writeTextFileStub.restore();
+        writeFileStub.restore();
       }
     });
   });

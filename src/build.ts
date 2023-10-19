@@ -1,5 +1,4 @@
 import {
-  bundle,
   ensureDir,
   getProtocolInterface,
   parseCLIArguments,
@@ -8,6 +7,8 @@ import {
 import type { Protocol } from "./deps.ts";
 import { cleanManifest, getManifest } from "./get_manifest.ts";
 import { validateManifestFunctions } from "./utilities.ts";
+import * as esbuild from "https://deno.land/x/esbuild@v0.19.4/mod.js";
+import { denoPlugins } from "https://deno.land/x/esbuild_deno_loader@0.8.2/mod.ts";
 
 export const validateAndCreateFunctions = async (
   workingDirectory: string,
@@ -46,6 +47,25 @@ export const validateAndCreateFunctions = async (
   }
 };
 
+async function solveDenoConfigPath(
+  directory: string = Deno.cwd(),
+): Promise<string> {
+  for (const name of ["deno.json", "deno.jsonc"]) {
+    const denoConfigPath = path.join(directory, name);
+    try {
+      await Deno.stat(denoConfigPath);
+      return denoConfigPath;
+    } catch (error) {
+      if (!(error instanceof Deno.errors.NotFound)) {
+        throw error;
+      }
+    }
+  }
+  throw new Error(
+    `Could not find a deno.json file in the current directory.`,
+  );
+}
+
 const createFunctionFile = async (
   outputDirectory: string,
   fnId: string,
@@ -54,13 +74,34 @@ const createFunctionFile = async (
 ) => {
   const fnFileRelative = path.join("functions", `${fnId}.js`);
   const fnBundledPath = path.join(outputDirectory, fnFileRelative);
-
+  await esbuild.initialize({});
   try {
-    const result = await bundle(fnFilePath, { allowRemote: true });
-    await Deno.writeTextFile(fnBundledPath, result.code);
+    protocol.log(fnFilePath);
+    protocol.log(`${Deno.cwd()}/import_map.json`);
+    // esbuild configuration options https://esbuild.github.io/api/#overview
+    const result = await esbuild.build({
+      entryPoints: [fnFilePath],
+      platform: "neutral",
+      target: "es2020",
+      format: "esm",
+      bundle: true,
+      splitting: true,
+      treeShaking: true,
+      minify: true,
+      sourcemap: true,
+      absWorkingDir: Deno.cwd(),
+      write: false,
+      outdir: "out",
+      plugins: [
+        ...denoPlugins({ configPath: await solveDenoConfigPath() }),
+      ],
+    });
+    await Deno.writeFile(fnBundledPath, result.outputFiles[0].contents);
   } catch (e) {
     protocol.error(`Error bundling function file: ${fnId}`);
     throw e;
+  } finally {
+    esbuild.stop();
   }
 };
 
