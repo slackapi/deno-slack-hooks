@@ -1,4 +1,3 @@
-import { EsbuildBundler } from "./bundler/EsbuildBundler.ts";
 import {
   ensureDir,
   getProtocolInterface,
@@ -8,6 +7,7 @@ import {
 import type { Protocol } from "./deps.ts";
 import { cleanManifest, getManifest } from "./get_manifest.ts";
 import { validateManifestFunctions } from "./utilities.ts";
+import { EsbuildBundler } from "./bundler/mods.ts";
 
 export const validateAndCreateFunctions = async (
   workingDirectory: string,
