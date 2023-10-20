@@ -15,7 +15,7 @@ Deno.test("build hook tests", async (t) => {
     });
 
     await tt.step(
-      "should invoke `deno bundle` once per non-API function",
+      "should invoke `esbuild` once per non-API function",
       async () => {
         const protocol = MockProtocol();
         const manifest = {
