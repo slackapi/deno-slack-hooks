@@ -1,8 +1,6 @@
 type BundleContentType =
-  | string
-  | ReadableStream<string>
   | Uint8Array
-  | ReadableStream<Uint8Array>;
+  | void;
 
 export interface Bundler {
   bundle(): Promise<BundleContentType>;

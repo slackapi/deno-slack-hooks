@@ -15,7 +15,85 @@ Deno.test("build hook tests", async (t) => {
     });
 
     await tt.step(
-      "should invoke `esbuild` once per non-API function",
+      "should invoke `deno bundle` once per non-API function",
+      async () => {
+        const protocol = MockProtocol();
+        const manifest = {
+          "functions": {
+            "test_function_one": {
+              "title": "Test function 1",
+              "description": "this is a test",
+              "source_file":
+                "src/tests/fixtures/functions/test_function_file.ts",
+              "input_parameters": {
+                "required": [],
+                "properties": {},
+              },
+              "output_parameters": {
+                "required": [],
+                "properties": {},
+              },
+            },
+            "test_function_two": {
+              "title": "Test function 2",
+              "description": "this is a test",
+              "source_file":
+                "src/tests/fixtures/functions/test_function_file.ts",
+              "input_parameters": {
+                "required": [],
+                "properties": {},
+              },
+              "output_parameters": {
+                "required": [],
+                "properties": {},
+              },
+            },
+            "api_function_that_should_not_be_built": {
+              "type": "API",
+              "title": "API function",
+              "description": "should most definitely not be bundled",
+              "source_file":
+                "src/tests/fixtures/functions/this_shouldnt_matter.ts",
+              "input_parameters": {
+                "required": [],
+                "properties": {},
+              },
+              "output_parameters": {
+                "required": [],
+                "properties": {},
+              },
+            },
+          },
+        };
+        const outputDir = await Deno.makeTempDir();
+
+        const commandResp = {
+          output: () => Promise.resolve({ code: 0, success: true }),
+        } as Deno.Command;
+
+        // Stub out call to `Deno.Command` and fake return a success
+        const commandStub = stub(
+          Deno,
+          "Command",
+          returnsNext([commandResp, commandResp]),
+        );
+
+        try {
+          await validateAndCreateFunctions(
+            Deno.cwd(),
+            outputDir,
+            manifest,
+            protocol,
+          );
+          assertSpyCalls(commandStub, 2);
+        } finally {
+          commandStub.restore();
+        }
+      },
+    );
+
+    await tt.step(
+      "should invoke `esbuild` once per non-API function if bundle fails",
       async () => {
         const protocol = MockProtocol();
         const manifest = {
@@ -67,12 +145,24 @@ Deno.test("build hook tests", async (t) => {
         };
         const outputDir = await Deno.makeTempDir();
         // Stub out call to `Deno.writeFile` and fake return a success
+
+        const commandResp = {
+          output: () => Promise.resolve({ code: 1, success: false }),
+        } as Deno.Command;
         const writeFileResponse = Promise.resolve();
+
+        // Stub out call to `Deno.Command` and fake return a success
+        const commandStub = stub(
+          Deno,
+          "Command",
+          returnsNext([commandResp, commandResp]),
+        );
         const writeFileStub = stub(
           Deno,
           "writeFile",
           returnsNext([writeFileResponse, writeFileResponse]),
         );
+
         try {
           await validateAndCreateFunctions(
             Deno.cwd(),
@@ -82,6 +172,7 @@ Deno.test("build hook tests", async (t) => {
           );
           assertSpyCalls(writeFileStub, 2);
         } finally {
+          commandStub.restore();
           writeFileStub.restore();
         }
       },

@@ -8,6 +8,7 @@ import type { Protocol } from "./deps.ts";
 import { cleanManifest, getManifest } from "./get_manifest.ts";
 import { validateManifestFunctions } from "./utilities.ts";
 import { EsbuildBundler } from "./bundler/mods.ts";
+import { DenoBundler } from "./bundler/DenoBundler.ts";
 
 export const validateAndCreateFunctions = async (
   workingDirectory: string,
@@ -47,7 +48,7 @@ export const validateAndCreateFunctions = async (
   }
 };
 
-async function solveDenoConfigPath(
+async function resolveDenoConfigPath(
   directory: string = Deno.cwd(),
 ): Promise<string> {
   for (const name of ["deno.json", "deno.jsonc"]) {
@@ -75,16 +76,29 @@ const createFunctionFile = async (
 ) => {
   const fnFileRelative = path.join("functions", `${fnId}.js`);
   const fnBundledPath = path.join(outputDirectory, fnFileRelative);
+
   try {
-    const bundler = new EsbuildBundler({
+    const bundler = new DenoBundler({
       entrypoint: fnFilePath,
-      absWorkingDir: workingDirectory,
-      configPath: await solveDenoConfigPath(workingDirectory),
+      fnBundledPath,
     });
-    await Deno.writeFile(fnBundledPath, await bundler.bundle());
-  } catch (e) {
-    protocol.error(`Error bundling function file: ${fnId}`);
-    throw e;
+
+    await bundler.bundle();
+  } catch (_error) {
+    protocol.error(`Error bundling function file with Deno: ${fnId}`);
+    protocol.log("Falling back to esbuild for bundling");
+
+    try {
+      const bundler = new EsbuildBundler({
+        entrypoint: fnFilePath,
+        absWorkingDir: workingDirectory,
+        configPath: await resolveDenoConfigPath(workingDirectory),
+      });
+      await Deno.writeFile(fnBundledPath, await bundler.bundle());
+    } catch (error) {
+      protocol.error(`Esbuild bundling error on function file: ${fnId}`);
+      throw error;
+    }
   }
 };
 
