@@ -32,7 +32,7 @@
   },
   "tasks": {
     "test": "deno fmt --check && deno lint && deno test --allow-read --allow-net --allow-write --allow-run src",
-    "coverage": "deno test --allow-read --allow-net --allow-write --allow-run --coverage=.coverage src && deno coverage --exclude=fixtures --exclude=test --lcov --output=lcov.info .coverage && deno run --allow-read https://deno.land/x/code_coverage@0.2.0/cli.ts"
+    "coverage": "rm -rf .coverage && deno test --reporter=dot --allow-read --allow-net --allow-write --allow-run --coverage=.coverage src && deno coverage --exclude=fixtures --exclude=test --lcov --output=lcov.info .coverage && deno run --allow-read https://deno.land/x/code_coverage@0.2.0/cli.ts"
   },
   "lock": false
 }
