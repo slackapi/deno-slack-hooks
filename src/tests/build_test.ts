@@ -9,6 +9,7 @@ import {
   stub,
 } from "../dev_deps.ts";
 import { MockProtocol } from "../dev_deps.ts";
+import { BundleError } from "../errors.ts";
 
 Deno.test("build hook tests", async (t) => {
   await t.step("validateAndCreateFunctions", async (tt) => {
@@ -16,57 +17,55 @@ Deno.test("build hook tests", async (t) => {
       assertExists(validateAndCreateFunctions);
     });
 
+    const validManifest = {
+      "functions": {
+        "test_function_one": {
+          "title": "Test function 1",
+          "description": "this is a test",
+          "source_file": "src/tests/fixtures/functions/test_function_file.ts",
+          "input_parameters": {
+            "required": [],
+            "properties": {},
+          },
+          "output_parameters": {
+            "required": [],
+            "properties": {},
+          },
+        },
+        "test_function_two": {
+          "title": "Test function 2",
+          "description": "this is a test",
+          "source_file": "src/tests/fixtures/functions/test_function_file.ts",
+          "input_parameters": {
+            "required": [],
+            "properties": {},
+          },
+          "output_parameters": {
+            "required": [],
+            "properties": {},
+          },
+        },
+        "api_function_that_should_not_be_built": {
+          "type": "API",
+          "title": "API function",
+          "description": "should most definitely not be bundled",
+          "source_file": "src/tests/fixtures/functions/this_shouldnt_matter.ts",
+          "input_parameters": {
+            "required": [],
+            "properties": {},
+          },
+          "output_parameters": {
+            "required": [],
+            "properties": {},
+          },
+        },
+      },
+    };
+
     await tt.step(
       "should invoke `deno bundle` once per non-API function",
       async () => {
         const protocol = MockProtocol();
-        const manifest = {
-          "functions": {
-            "test_function_one": {
-              "title": "Test function 1",
-              "description": "this is a test",
-              "source_file":
-                "src/tests/fixtures/functions/test_function_file.ts",
-              "input_parameters": {
-                "required": [],
-                "properties": {},
-              },
-              "output_parameters": {
-                "required": [],
-                "properties": {},
-              },
-            },
-            "test_function_two": {
-              "title": "Test function 2",
-              "description": "this is a test",
-              "source_file":
-                "src/tests/fixtures/functions/test_function_file.ts",
-              "input_parameters": {
-                "required": [],
-                "properties": {},
-              },
-              "output_parameters": {
-                "required": [],
-                "properties": {},
-              },
-            },
-            "api_function_that_should_not_be_built": {
-              "type": "API",
-              "title": "API function",
-              "description": "should most definitely not be bundled",
-              "source_file":
-                "src/tests/fixtures/functions/this_shouldnt_matter.ts",
-              "input_parameters": {
-                "required": [],
-                "properties": {},
-              },
-              "output_parameters": {
-                "required": [],
-                "properties": {},
-              },
-            },
-          },
-        };
         const outputDir = await Deno.makeTempDir();
 
         const commandResp = {
@@ -89,7 +88,7 @@ Deno.test("build hook tests", async (t) => {
           await validateAndCreateFunctions(
             Deno.cwd(),
             outputDir,
-            manifest,
+            validManifest,
             protocol,
           );
           assertSpyCalls(commandStub, 2);
@@ -105,53 +104,7 @@ Deno.test("build hook tests", async (t) => {
       "should invoke `esbuild` once per non-API function if bundle fails",
       async () => {
         const protocol = MockProtocol();
-        const manifest = {
-          "functions": {
-            "test_function_one": {
-              "title": "Test function 1",
-              "description": "this is a test",
-              "source_file":
-                "src/tests/fixtures/functions/test_function_file.ts",
-              "input_parameters": {
-                "required": [],
-                "properties": {},
-              },
-              "output_parameters": {
-                "required": [],
-                "properties": {},
-              },
-            },
-            "test_function_two": {
-              "title": "Test function 2",
-              "description": "this is a test",
-              "source_file":
-                "src/tests/fixtures/functions/test_function_file.ts",
-              "input_parameters": {
-                "required": [],
-                "properties": {},
-              },
-              "output_parameters": {
-                "required": [],
-                "properties": {},
-              },
-            },
-            "api_function_that_should_not_be_built": {
-              "type": "API",
-              "title": "API function",
-              "description": "should most definitely not be bundled",
-              "source_file":
-                "src/tests/fixtures/functions/this_shouldnt_matter.ts",
-              "input_parameters": {
-                "required": [],
-                "properties": {},
-              },
-              "output_parameters": {
-                "required": [],
-                "properties": {},
-              },
-            },
-          },
-        };
+
         const outputDir = await Deno.makeTempDir();
 
         // Stub out call to `Deno.Command` and fake throw error
@@ -159,7 +112,7 @@ Deno.test("build hook tests", async (t) => {
           DenoBundler,
           "bundle",
           () => {
-            throw new Error("Error bundling function file");
+            throw new BundleError();
           },
         );
 
@@ -174,11 +127,53 @@ Deno.test("build hook tests", async (t) => {
           await validateAndCreateFunctions(
             Deno.cwd(),
             outputDir,
-            manifest,
+            validManifest,
             protocol,
           );
           assertSpyCalls(commandStub, 2);
           assertSpyCalls(writeFileStub, 2);
+        } finally {
+          commandStub.restore();
+          writeFileStub.restore();
+        }
+      },
+    );
+
+    await tt.step(
+      "an exception if `DenoBundler.bundle` fails unexpectedly",
+      async () => {
+        const protocol = MockProtocol();
+        const outputDir = await Deno.makeTempDir();
+
+        // Stub out call to `Deno.Command` and fake throw error
+        const commandStub = stub(
+          DenoBundler,
+          "bundle",
+          () => {
+            throw new Error("something was unexpected");
+          },
+        );
+
+        // Spy on `Deno.writeFile`
+        const writeFileStub = spy(
+          Deno,
+          "writeFile",
+        );
+
+        try {
+          await assertRejects(
+            () =>
+              validateAndCreateFunctions(
+                Deno.cwd(),
+                outputDir,
+                validManifest,
+                protocol,
+              ),
+            Error,
+            "something was unexpected",
+          );
+          assertSpyCalls(commandStub, 1);
+          assertSpyCalls(writeFileStub, 0);
         } finally {
           commandStub.restore();
           writeFileStub.restore();

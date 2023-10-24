@@ -1,3 +1,5 @@
+import { BundleError } from "../errors.ts";
+
 export type DenoBundlerOptions = {
   /** The path to the file being bundled */
   entrypoint: string;
@@ -19,7 +21,7 @@ export const DenoBundler = {
 
     const { code, stderr } = await command.output();
     if (code !== 0) {
-      throw new Error("Error bundling function file", {
+      throw new BundleError({
         cause: new TextDecoder().decode(stderr),
       });
     }

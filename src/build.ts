@@ -9,6 +9,7 @@ import { cleanManifest, getManifest } from "./get_manifest.ts";
 import { validateManifestFunctions } from "./utilities.ts";
 import { EsbuildBundler } from "./bundler/mods.ts";
 import { DenoBundler } from "./bundler/DenoBundler.ts";
+import { BundleError } from "./errors.ts";
 
 export const validateAndCreateFunctions = async (
   workingDirectory: string,
@@ -82,9 +83,14 @@ const createFunctionFile = async (
       entrypoint: fnFilePath,
       fnBundledPath,
     });
-  } catch (_denoError) {
+  } catch (denoBundleErr) {
+    if (!(denoBundleErr instanceof BundleError)) {
+      protocol.error(`Error bundling function file "${fnId}" with Deno`);
+      throw denoBundleErr;
+    }
+
     protocol.warn(
-      `Failed bundling function file ${fnId} with Deno falling back to esbuild`,
+      `Failed bundling function file "${fnId}" with Deno falling back to esbuild`,
     );
 
     try {
@@ -95,8 +101,8 @@ const createFunctionFile = async (
       });
       await Deno.writeFile(fnBundledPath, bundle);
     } catch (esbuildError) {
-      protocol.error(`Esbuild bundling error on function file: ${fnId}`);
-      throw new Error(esbuildError);
+      protocol.error(`Error bundling function file "${fnId}" with esbuild`);
+      throw esbuildError;
     }
   }
 };

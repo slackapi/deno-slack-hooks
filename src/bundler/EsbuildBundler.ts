@@ -19,9 +19,6 @@ export const EsbuildBundler = {
         target: "deno1",
         format: "esm", // esm format stands for "ECMAScript module"
         bundle: true, // inline any imported dependencies into the file itself
-        treeShaking: true, // dead code elimination, removes unreachable code
-        minify: true, // the generated code will be minified instead of pretty-printed
-        sourcemap: "inline", // source map is appended to the end of the .js output file
         absWorkingDir: options.absWorkingDir,
         write: false, // Favor returning the contents
         outdir: "out", // Nothing is being written to file here
