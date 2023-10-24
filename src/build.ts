@@ -7,8 +7,7 @@ import {
 import type { Protocol } from "./deps.ts";
 import { cleanManifest, getManifest } from "./get_manifest.ts";
 import { validateManifestFunctions } from "./utilities.ts";
-import { EsbuildBundler } from "./bundler/mods.ts";
-import { DenoBundler } from "./bundler/DenoBundler.ts";
+import { DenoBundler, EsbuildBundler } from "./bundler/mods.ts";
 import { BundleError } from "./errors.ts";
 
 export const validateAndCreateFunctions = async (

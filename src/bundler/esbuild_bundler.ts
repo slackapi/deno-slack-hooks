@@ -1,6 +1,6 @@
 import { denoPlugins, esbuild } from "../deps.ts";
 
-export type EsbuildBundlerOptions = {
+export type EsbuildBundleOptions = {
   /** The path to the file being bundled */
   entrypoint: string;
   /** The path to the deno.json / deno.jsonc config file. */
@@ -10,7 +10,7 @@ export type EsbuildBundlerOptions = {
 };
 
 export const EsbuildBundler = {
-  bundle: async (options: EsbuildBundlerOptions): Promise<Uint8Array> => {
+  bundle: async (options: EsbuildBundleOptions): Promise<Uint8Array> => {
     try {
       // esbuild configuration options https://esbuild.github.io/api/#overview
       const result = await esbuild.build({

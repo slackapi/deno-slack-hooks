@@ -1,6 +1,5 @@
 import { validateAndCreateFunctions } from "../build.ts";
-import { DenoBundler } from "../bundler/DenoBundler.ts";
-import { EsbuildBundler } from "../bundler/mods.ts";
+import { DenoBundler, EsbuildBundler } from "../bundler/mods.ts";
 import {
   assertExists,
   assertRejects,
@@ -140,7 +139,7 @@ Deno.test("build hook tests", async (t) => {
     );
 
     await tt.step(
-      "an exception if `DenoBundler.bundle` fails unexpectedly",
+      "should throw an exception if `DenoBundler.bundle` fails unexpectedly",
       async () => {
         const protocol = MockProtocol();
         const outputDir = await Deno.makeTempDir();

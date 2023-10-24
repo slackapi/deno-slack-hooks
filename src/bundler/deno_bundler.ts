@@ -1,6 +1,6 @@
 import { BundleError } from "../errors.ts";
 
-export type DenoBundlerOptions = {
+export type DenoBundleOptions = {
   /** The path to the file being bundled */
   entrypoint: string;
   /** The path to the deno.json / deno.jsonc config file. */
@@ -8,7 +8,7 @@ export type DenoBundlerOptions = {
 };
 
 export const DenoBundler = {
-  bundle: async (options: DenoBundlerOptions): Promise<void> => {
+  bundle: async (options: DenoBundleOptions): Promise<void> => {
     // call out to deno to handle bundling
     const command = new Deno.Command(Deno.execPath(), {
       args: [

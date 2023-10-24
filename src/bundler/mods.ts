@@ -1,4 +1,4 @@
-export { EsbuildBundler } from "./EsbuildBundler.ts";
-export { DenoBundler } from "./DenoBundler.ts";
-export type { DenoBundlerOptions } from "./DenoBundler.ts";
-export type { EsbuildBundlerOptions } from "./EsbuildBundler.ts";
+export { EsbuildBundler } from "./esbuild_bundler.ts";
+export { DenoBundler } from "./deno_bundler.ts";
+export type { DenoBundleOptions } from "./deno_bundler.ts";
+export type { EsbuildBundleOptions } from "./esbuild_bundler.ts";
