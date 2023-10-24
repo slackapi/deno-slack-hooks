@@ -78,26 +78,25 @@ const createFunctionFile = async (
   const fnBundledPath = path.join(outputDirectory, fnFileRelative);
 
   try {
-    const bundler = new DenoBundler({
+    await DenoBundler.bundle({
       entrypoint: fnFilePath,
       fnBundledPath,
     });
-
-    await bundler.bundle();
-  } catch (_error) {
-    protocol.error(`Error bundling function file with Deno: ${fnId}`);
-    protocol.log("Falling back to esbuild for bundling");
+  } catch (_denoError) {
+    protocol.warn(
+      `Failed bundling function file ${fnId} with Deno falling back to esbuild`,
+    );
 
     try {
-      const bundler = new EsbuildBundler({
+      const bundle = await EsbuildBundler.bundle({
         entrypoint: fnFilePath,
         absWorkingDir: workingDirectory,
         configPath: await resolveDenoConfigPath(workingDirectory),
       });
-      await Deno.writeFile(fnBundledPath, await bundler.bundle());
-    } catch (error) {
+      await Deno.writeFile(fnBundledPath, bundle);
+    } catch (esbuildError) {
       protocol.error(`Esbuild bundling error on function file: ${fnId}`);
-      throw error;
+      throw new Error(esbuildError);
     }
   }
 };

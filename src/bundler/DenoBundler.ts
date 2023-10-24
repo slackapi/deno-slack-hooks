@@ -1,5 +1,3 @@
-import { Bundler } from "./types.ts";
-
 export type DenoBundlerOptions = {
   /** The path to the file being bundled */
   entrypoint: string;
@@ -7,23 +5,23 @@ export type DenoBundlerOptions = {
   fnBundledPath: string;
 };
 
-export class DenoBundler implements Bundler {
-  constructor(private options: DenoBundlerOptions) {}
-
-  async bundle(): Promise<void> {
+export const DenoBundler = {
+  bundle: async (options: DenoBundlerOptions): Promise<void> => {
     // call out to deno to handle bundling
     const command = new Deno.Command(Deno.execPath(), {
       args: [
         "bundle",
         "--quiet",
-        this.options.entrypoint,
-        this.options.fnBundledPath,
+        options.entrypoint,
+        options.fnBundledPath,
       ],
     });
 
     const { code, stderr } = await command.output();
-    if (code !== 0 || stderr) {
-      throw new Error(`Error bundling function file`, { cause: stderr });
+    if (code !== 0) {
+      throw new Error("Error bundling function file", {
+        cause: new TextDecoder().decode(stderr),
+      });
     }
-  }
-}
+  },
+};

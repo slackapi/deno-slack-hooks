@@ -1,9 +1,11 @@
 import { validateAndCreateFunctions } from "../build.ts";
+import { DenoBundler } from "../bundler/DenoBundler.ts";
+import { EsbuildBundler } from "../bundler/mods.ts";
 import {
   assertExists,
   assertRejects,
   assertSpyCalls,
-  returnsNext,
+  spy,
   stub,
 } from "../dev_deps.ts";
 import { MockProtocol } from "../dev_deps.ts";
@@ -68,14 +70,19 @@ Deno.test("build hook tests", async (t) => {
         const outputDir = await Deno.makeTempDir();
 
         const commandResp = {
-          output: () => Promise.resolve({ code: 0, success: true }),
+          output: () => Promise.resolve({ code: 0 }),
         } as Deno.Command;
 
         // Stub out call to `Deno.Command` and fake return a success
         const commandStub = stub(
           Deno,
           "Command",
-          returnsNext([commandResp, commandResp]),
+          () => commandResp,
+        );
+
+        const esbuildBundlerSpy = spy(
+          EsbuildBundler,
+          "bundle",
         );
 
         try {
@@ -86,8 +93,10 @@ Deno.test("build hook tests", async (t) => {
             protocol,
           );
           assertSpyCalls(commandStub, 2);
+          assertSpyCalls(esbuildBundlerSpy, 0);
         } finally {
           commandStub.restore();
+          esbuildBundlerSpy.restore();
         }
       },
     );
@@ -144,23 +153,21 @@ Deno.test("build hook tests", async (t) => {
           },
         };
         const outputDir = await Deno.makeTempDir();
-        // Stub out call to `Deno.writeFile` and fake return a success
 
-        const commandResp = {
-          output: () => Promise.resolve({ code: 1, success: false }),
-        } as Deno.Command;
-        const writeFileResponse = Promise.resolve();
-
-        // Stub out call to `Deno.Command` and fake return a success
+        // Stub out call to `Deno.Command` and fake throw error
         const commandStub = stub(
-          Deno,
-          "Command",
-          returnsNext([commandResp, commandResp]),
+          DenoBundler,
+          "bundle",
+          () => {
+            throw new Error("Error bundling function file");
+          },
         );
+
+        // Stub out call to `Deno.writeFile` and fake response
         const writeFileStub = stub(
           Deno,
           "writeFile",
-          returnsNext([writeFileResponse, writeFileResponse]),
+          async () => {},
         );
 
         try {
@@ -170,6 +177,7 @@ Deno.test("build hook tests", async (t) => {
             manifest,
             protocol,
           );
+          assertSpyCalls(commandStub, 2);
           assertSpyCalls(writeFileStub, 2);
         } finally {
           commandStub.restore();
@@ -352,13 +360,17 @@ Deno.test("build hook tests", async (t) => {
         manifest,
         protocol,
       );
-      // Stub out call to `Deno.run` and fake return a success
-      const writeFileResponse = Promise.resolve();
-      const writeFileStub = stub(
+
+      // Spy on `Deno.Command` and `writeFile`
+      const commandStub = spy(
+        Deno,
+        "Command",
+      );
+      const writeFileStub = spy(
         Deno,
         "writeFile",
-        returnsNext([writeFileResponse, writeFileResponse]),
       );
+
       try {
         await validateAndCreateFunctions(
           Deno.cwd(),
@@ -366,8 +378,10 @@ Deno.test("build hook tests", async (t) => {
           manifest,
           protocol,
         );
+        assertSpyCalls(commandStub, 0);
         assertSpyCalls(writeFileStub, 0);
       } finally {
+        commandStub.restore();
         writeFileStub.restore();
       }
     });

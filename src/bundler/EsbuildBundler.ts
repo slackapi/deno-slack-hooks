@@ -1,5 +1,4 @@
 import { denoPlugins, esbuild } from "../deps.ts";
-import { Bundler } from "./types.ts";
 
 export type EsbuildBundlerOptions = {
   /** The path to the file being bundled */
@@ -10,14 +9,12 @@ export type EsbuildBundlerOptions = {
   absWorkingDir: string;
 };
 
-export class EsbuildBundler implements Bundler {
-  constructor(private options: EsbuildBundlerOptions) {}
-
-  async bundle(): Promise<Uint8Array> {
+export const EsbuildBundler = {
+  bundle: async (options: EsbuildBundlerOptions): Promise<Uint8Array> => {
     try {
       // esbuild configuration options https://esbuild.github.io/api/#overview
       const result = await esbuild.build({
-        entryPoints: [this.options.entrypoint],
+        entryPoints: [options.entrypoint],
         platform: "neutral",
         target: "deno1",
         format: "esm", // esm format stands for "ECMAScript module"
@@ -25,16 +22,16 @@ export class EsbuildBundler implements Bundler {
         treeShaking: true, // dead code elimination, removes unreachable code
         minify: true, // the generated code will be minified instead of pretty-printed
         sourcemap: "inline", // source map is appended to the end of the .js output file
-        absWorkingDir: this.options.absWorkingDir,
+        absWorkingDir: options.absWorkingDir,
         write: false, // Favor returning the contents
         outdir: "out", // Nothing is being written to file here
         plugins: [
-          ...denoPlugins({ configPath: this.options.configPath }),
+          ...denoPlugins({ configPath: options.configPath }),
         ],
       });
       return result.outputFiles[0].contents;
     } finally {
       esbuild.stop();
     }
-  }
-}
+  },
+};
