@@ -12,7 +12,6 @@ export type EsbuildBundleOptions = {
 export const EsbuildBundler = {
   bundle: async (options: EsbuildBundleOptions): Promise<Uint8Array> => {
     try {
-      Deno.version.deno;
       // esbuild configuration options https://esbuild.github.io/api/#overview
       const result = await esbuild.build({
         entryPoints: [options.entrypoint],

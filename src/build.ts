@@ -89,7 +89,7 @@ const createFunctionFile = async (
     }
 
     protocol.warn(
-      `Failed bundling function file "${fnId}" with Deno falling back to esbuild`,
+      "Failed bundling with `Deno Bundle` falling back to esbuild",
     );
 
     try {
