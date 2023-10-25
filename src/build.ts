@@ -80,7 +80,7 @@ const createFunctionFile = async (
   try {
     await DenoBundler.bundle({
       entrypoint: fnFilePath,
-      fnBundledPath,
+      outFile: fnBundledPath,
     });
   } catch (denoBundleErr) {
     if (!(denoBundleErr instanceof BundleError)) {

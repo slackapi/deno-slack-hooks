@@ -4,7 +4,7 @@ export type DenoBundleOptions = {
   /** The path to the file being bundled */
   entrypoint: string;
   /** The path to the deno.json / deno.jsonc config file. */
-  fnBundledPath: string;
+  outFile: string;
 };
 
 export const DenoBundler = {
@@ -15,7 +15,7 @@ export const DenoBundler = {
         "bundle",
         "--quiet",
         options.entrypoint,
-        options.fnBundledPath,
+        options.outFile,
       ],
     });
 

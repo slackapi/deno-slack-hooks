@@ -20,7 +20,7 @@ Deno.test("Deno Bundler tests", async (t) => {
 
         try {
           await DenoBundler.bundle(
-            { entrypoint: "./function.ts", fnBundledPath: "./dist/bundle.ts" },
+            { entrypoint: "./function.ts", outFile: "./dist/bundle.ts" },
           );
           assertSpyCalls(commandStub, 1);
         } finally {
@@ -55,7 +55,7 @@ Deno.test("Deno Bundler tests", async (t) => {
               DenoBundler.bundle(
                 {
                   entrypoint: "./function.ts",
-                  fnBundledPath: "./dist/bundle.ts",
+                  outFile: "./dist/bundle.ts",
                 },
               ),
             BundleError,

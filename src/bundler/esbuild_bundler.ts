@@ -12,11 +12,12 @@ export type EsbuildBundleOptions = {
 export const EsbuildBundler = {
   bundle: async (options: EsbuildBundleOptions): Promise<Uint8Array> => {
     try {
+      Deno.version.deno;
       // esbuild configuration options https://esbuild.github.io/api/#overview
       const result = await esbuild.build({
         entryPoints: [options.entrypoint],
         platform: "neutral",
-        target: "deno1",
+        target: "deno1", // TODO: the versions should come from the user defined input
         format: "esm", // esm format stands for "ECMAScript module"
         bundle: true, // inline any imported dependencies into the file itself
         absWorkingDir: options.absWorkingDir,
