@@ -66,9 +66,8 @@ const createFunctionFile = async (
 
   try {
     // call out to deno to handle bundling
-    const p = Deno.run({
-      cmd: [
-        denoExecutablePath,
+    const commander = new Deno.Command(denoExecutablePath, {
+      args: [
         "bundle",
         "--quiet",
         fnFilePath,
@@ -76,8 +75,10 @@ const createFunctionFile = async (
       ],
     });
 
-    const status = await p.status();
-    p.close();
+    const subprocess = commander.spawn();
+    const status = await subprocess.status;
+    subprocess.kill();
+
     if (status.code !== 0 || !status.success) {
       throw new Error(`Error bundling function file: ${fnId}`);
     }

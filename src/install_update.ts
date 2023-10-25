@@ -45,7 +45,7 @@ export const updateDependencies = async () => {
       // TODO :: This try/catch should be nested within createUpdateResp
       // but doing so surfaces an issue with the --allow-run flag not
       // being used, despite its presence and success at this level
-      runBuildHook();
+      await runBuildHook();
     } catch (err) {
       updateResp.error = { message: err.message };
     }
@@ -175,11 +175,14 @@ export function updateDependencyMap(
  * `install-update`, this is in order to cache the dependency version
  * updates that occurred.
  */
-function runBuildHook(): void {
+async function runBuildHook(): Promise<void> {
   try {
     const { hooks: { build } } = projectScripts([]);
-    const buildArgs = build.split(" ");
-    Deno.run({ cmd: buildArgs });
+    const [denoExecutablePath, ...buildArgs] = build.split(" ");
+    const commander = new Deno.Command(denoExecutablePath, { args: buildArgs });
+    const subprocess = commander.spawn();
+    await subprocess.status;
+    subprocess.kill();
   } catch (err) {
     throw new Error(err);
   }
