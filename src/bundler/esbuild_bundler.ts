@@ -1,6 +1,6 @@
 import { denoPlugins, esbuild } from "../deps.ts";
 
-export type EsbuildBundleOptions = {
+type EsbuildBundleOptions = {
   /** The path to the file being bundled */
   entrypoint: string;
   /** The path to the deno.json / deno.jsonc config file. */

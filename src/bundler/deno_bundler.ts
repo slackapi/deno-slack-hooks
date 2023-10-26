@@ -1,6 +1,6 @@
 import { BundleError } from "../errors.ts";
 
-export type DenoBundleOptions = {
+type DenoBundleOptions = {
   /** The path to the file being bundled */
   entrypoint: string;
   /** The path where the bundled file should be written. */

@@ -88,9 +88,7 @@ const createFunctionFile = async (
       throw denoBundleErr;
     }
 
-    protocol.warn(
-      "Failed bundling with `Deno Bundle` falling back to esbuild",
-    );
+    // TODO: once Protocol can handle debug add a debug statement here
 
     try {
       const bundle = await EsbuildBundler.bundle({

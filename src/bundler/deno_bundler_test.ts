@@ -1,9 +1,12 @@
-import { assertRejects, assertSpyCalls, stub } from "../dev_deps.ts";
+import { assertRejects, assertSpyCall, stub } from "../dev_deps.ts";
 import { BundleError } from "../errors.ts";
 import { DenoBundler } from "./deno_bundler.ts";
 
 Deno.test("Deno Bundler tests", async (t) => {
   await t.step(DenoBundler.bundle.name, async (tt) => {
+    const expectedEntrypoint = "./function.ts";
+    const expectedOutFile = "./dist/bundle.ts";
+
     await tt.step(
       "should invoke 'deno bundle' successfully",
       async () => {
@@ -20,9 +23,21 @@ Deno.test("Deno Bundler tests", async (t) => {
 
         try {
           await DenoBundler.bundle(
-            { entrypoint: "./function.ts", outFile: "./dist/bundle.ts" },
+            { entrypoint: expectedEntrypoint, outFile: expectedOutFile },
           );
-          assertSpyCalls(commandStub, 1);
+          assertSpyCall(commandStub, 0, {
+            args: [
+              Deno.execPath(),
+              {
+                args: [
+                  "bundle",
+                  "--quiet",
+                  expectedEntrypoint,
+                  expectedOutFile,
+                ],
+              },
+            ],
+          });
         } finally {
           commandStub.restore();
         }
@@ -54,14 +69,26 @@ Deno.test("Deno Bundler tests", async (t) => {
             () =>
               DenoBundler.bundle(
                 {
-                  entrypoint: "./function.ts",
-                  outFile: "./dist/bundle.ts",
+                  entrypoint: expectedEntrypoint,
+                  outFile: expectedOutFile,
                 },
               ),
             BundleError,
             "Error bundling function file",
           );
-          assertSpyCalls(commandStub, 1);
+          assertSpyCall(commandStub, 0, {
+            args: [
+              Deno.execPath(),
+              {
+                args: [
+                  "bundle",
+                  "--quiet",
+                  expectedEntrypoint,
+                  expectedOutFile,
+                ],
+              },
+            ],
+          });
         } finally {
           commandStub.restore();
         }
