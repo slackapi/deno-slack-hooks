@@ -1,12 +1,14 @@
 import { validateAndCreateFunctions } from "../build.ts";
+import { DenoBundler, EsbuildBundler } from "../bundler/mods.ts";
 import {
   assertExists,
   assertRejects,
   assertSpyCalls,
-  returnsNext,
+  spy,
   stub,
 } from "../dev_deps.ts";
 import { MockProtocol } from "../dev_deps.ts";
+import { BundleError } from "../errors.ts";
 
 Deno.test("build hook tests", async (t) => {
   await t.step("validateAndCreateFunctions", async (tt) => {
@@ -14,76 +16,167 @@ Deno.test("build hook tests", async (t) => {
       assertExists(validateAndCreateFunctions);
     });
 
+    const validManifest = {
+      "functions": {
+        "test_function_one": {
+          "title": "Test function 1",
+          "description": "this is a test",
+          "source_file": "src/tests/fixtures/functions/test_function_file.ts",
+          "input_parameters": {
+            "required": [],
+            "properties": {},
+          },
+          "output_parameters": {
+            "required": [],
+            "properties": {},
+          },
+        },
+        "test_function_two": {
+          "title": "Test function 2",
+          "description": "this is a test",
+          "source_file": "src/tests/fixtures/functions/test_function_file.ts",
+          "input_parameters": {
+            "required": [],
+            "properties": {},
+          },
+          "output_parameters": {
+            "required": [],
+            "properties": {},
+          },
+        },
+        "api_function_that_should_not_be_built": {
+          "type": "API",
+          "title": "API function",
+          "description": "should most definitely not be bundled",
+          "source_file": "src/tests/fixtures/functions/this_shouldnt_matter.ts",
+          "input_parameters": {
+            "required": [],
+            "properties": {},
+          },
+          "output_parameters": {
+            "required": [],
+            "properties": {},
+          },
+        },
+      },
+    };
+
     await tt.step(
       "should invoke `deno bundle` once per non-API function",
       async () => {
         const protocol = MockProtocol();
-        const manifest = {
-          "functions": {
-            "test_function_one": {
-              "title": "Test function 1",
-              "description": "this is a test",
-              "source_file":
-                "src/tests/fixtures/functions/test_function_file.ts",
-              "input_parameters": {
-                "required": [],
-                "properties": {},
-              },
-              "output_parameters": {
-                "required": [],
-                "properties": {},
-              },
-            },
-            "test_function_two": {
-              "title": "Test function 2",
-              "description": "this is a test",
-              "source_file":
-                "src/tests/fixtures/functions/test_function_file.ts",
-              "input_parameters": {
-                "required": [],
-                "properties": {},
-              },
-              "output_parameters": {
-                "required": [],
-                "properties": {},
-              },
-            },
-            "api_function_that_should_not_be_built": {
-              "type": "API",
-              "title": "API function",
-              "description": "should most definitely not be bundled",
-              "source_file":
-                "src/tests/fixtures/functions/this_shouldnt_matter.ts",
-              "input_parameters": {
-                "required": [],
-                "properties": {},
-              },
-              "output_parameters": {
-                "required": [],
-                "properties": {},
-              },
-            },
-          },
-        };
         const outputDir = await Deno.makeTempDir();
-        // Stub out call to `Deno.run` and fake return a success
-        const runResponse = {
-          close: () => {},
-          status: () => Promise.resolve({ code: 0, success: true }),
-        } as unknown as Deno.Process<Deno.RunOptions>;
-        const runStub = stub(
+
+        const commandResp = {
+          output: () => Promise.resolve({ code: 0 }),
+        } as Deno.Command;
+
+        // Stub out call to `Deno.Command` and fake return a success
+        const commandStub = stub(
           Deno,
-          "run",
-          returnsNext([runResponse, runResponse]),
+          "Command",
+          () => commandResp,
         );
-        await validateAndCreateFunctions(
-          Deno.cwd(),
-          outputDir,
-          manifest,
-          protocol,
+
+        const esbuildBundlerSpy = spy(
+          EsbuildBundler,
+          "bundle",
         );
-        assertSpyCalls(runStub, 2);
-        runStub.restore();
+
+        try {
+          await validateAndCreateFunctions(
+            Deno.cwd(),
+            outputDir,
+            validManifest,
+            protocol,
+          );
+          assertSpyCalls(commandStub, 2);
+          assertSpyCalls(esbuildBundlerSpy, 0);
+        } finally {
+          commandStub.restore();
+          esbuildBundlerSpy.restore();
+        }
+      },
+    );
+
+    await tt.step(
+      "should invoke `esbuild` once per non-API function if bundle fails",
+      async () => {
+        const protocol = MockProtocol();
+
+        const outputDir = await Deno.makeTempDir();
+
+        // Stub out call to `Deno.Command` and fake throw error
+        const commandStub = stub(
+          DenoBundler,
+          "bundle",
+          () => {
+            throw new BundleError();
+          },
+        );
+
+        // Stub out call to `Deno.writeFile` and fake response
+        const writeFileStub = stub(
+          Deno,
+          "writeFile",
+          async () => {},
+        );
+
+        try {
+          await validateAndCreateFunctions(
+            Deno.cwd(),
+            outputDir,
+            validManifest,
+            protocol,
+          );
+          assertSpyCalls(commandStub, 2);
+          assertSpyCalls(writeFileStub, 2);
+        } finally {
+          commandStub.restore();
+          writeFileStub.restore();
+        }
+      },
+    );
+
+    await tt.step(
+      "should throw an exception if `DenoBundler.bundle` fails unexpectedly",
+      async () => {
+        const protocol = MockProtocol();
+        const outputDir = await Deno.makeTempDir();
+
+        // Stub out call to `Deno.Command` and fake throw error
+        const commandStub = stub(
+          DenoBundler,
+          "bundle",
+          () => {
+            throw new Error("something was unexpected");
+          },
+        );
+
+        // Spy on `Deno.writeFile`
+        const writeFileStub = spy(
+          Deno,
+          "writeFile",
+        );
+
+        try {
+          await assertRejects(
+            () =>
+              validateAndCreateFunctions(
+                Deno.cwd(),
+                outputDir,
+                validManifest,
+                protocol,
+              ),
+            Error,
+            "something was unexpected",
+          );
+          assertSpyCalls(commandStub, 1);
+          assertSpyCalls(writeFileStub, 0);
+        } finally {
+          commandStub.restore();
+          writeFileStub.restore();
+        }
       },
     );
 
@@ -261,19 +354,30 @@ Deno.test("build hook tests", async (t) => {
         manifest,
         protocol,
       );
-      // Stub out call to `Deno.run` and fake return a success
-      const runResponse = {
-        close: () => {},
-        status: () => Promise.resolve({ code: 0, success: true }),
-      } as unknown as Deno.Process<Deno.RunOptions>;
-      const runStub = stub(
+
+      // Spy on `Deno.Command` and `writeFile`
+      const commandStub = spy(
         Deno,
-        "run",
-        returnsNext([runResponse, runResponse]),
+        "Command",
       );
-      // Make sure we didn't shell out to Deno.run
-      assertSpyCalls(runStub, 0);
-      runStub.restore();
+      const writeFileStub = spy(
+        Deno,
+        "writeFile",
+      );
+
+      try {
+        await validateAndCreateFunctions(
+          Deno.cwd(),
+          outputDir,
+          manifest,
+          protocol,
+        );
+        assertSpyCalls(commandStub, 0);
+        assertSpyCalls(writeFileStub, 0);
+      } finally {
+        commandStub.restore();
+        writeFileStub.restore();
+      }
     });
   });
 });
