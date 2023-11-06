@@ -17,7 +17,9 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        deno-version: ["v1.30.x", "v1.x"]
     steps:
       - name: Setup repo
         uses: actions/checkout@v2
@@ -25,7 +27,7 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v1
         with:
-          deno-version: v1.x
+          deno-version: ${{ matrix.deno-version }}
 
       - name: Run tests
         run: deno task test
@@ -34,6 +36,7 @@ jobs:
         run: deno task coverage
 
       - name: Upload coverage to CodeCov
+        if: ${{ matrix.deno-version }} == 'v1.x'
         uses: codecov/codecov-action@v3.1.0
         with:
           file: ./lcov.info
