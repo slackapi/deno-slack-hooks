@@ -122,4 +122,4 @@ We welcome contributions from everyone! Please check out our
 helpful and collaborative way.
 
 [cli]: https://github.com/slackapi/slack-cli
-[nextgen]: https://api.slack.com/future
+[nextgen]: https://api.slack.com/automation
