@@ -10,7 +10,8 @@ type EsbuildBundleOptions = {
 };
 
 export const EsbuildBundler = {
-  bundle: async (options: EsbuildBundleOptions): Promise<Uint8Array> => {
+  // deno-lint-ignore no-explicit-any
+  bundle: async (options: EsbuildBundleOptions): Promise<any> => {
     try {
       // esbuild configuration options https://esbuild.github.io/api/#overview
       const result = await esbuild.build({
@@ -22,11 +23,12 @@ export const EsbuildBundler = {
         absWorkingDir: options.absWorkingDir,
         write: false, // Favor returning the contents
         outdir: "out", // Nothing is being written to file here
+        metafile: true,
         plugins: [
           ...denoPlugins({ configPath: options.configPath }),
         ],
       });
-      return result.outputFiles[0].contents;
+      return result;
     } finally {
       esbuild.stop();
     }
