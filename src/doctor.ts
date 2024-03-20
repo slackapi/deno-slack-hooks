@@ -11,6 +11,7 @@ type RuntimeVersion = {
 
 const getHostedDenoRuntimeVersion = async (): Promise<{
   minimum?: string;
+  message?: string;
   error?: { message: string };
 }> => {
   try {
@@ -24,7 +25,10 @@ const getHostedDenoRuntimeVersion = async (): Promise<{
     if (!version) {
       throw new Error("Failed to find the minimum Deno version");
     }
-    return { minimum: version };
+    const message = Deno.version.deno !== version
+      ? `Applications deployed to Slack use Deno version ${version}`
+      : undefined;
+    return { minimum: version, message };
   } catch (err) {
     if (err instanceof Error) {
       return { error: { message: err.message } };
