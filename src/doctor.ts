@@ -1,19 +1,47 @@
 import { getProtocolInterface } from "./deps.ts";
 
-type ExecutionTool = {
+type RuntimeVersion = {
   name: string;
   current: string;
   minimum?: string;
+  error?: {
+    message: string;
+  };
 };
 
-export const getExecutionEnvironment = (): {
-  versions: ExecutionTool[];
-} => {
+const getHostedDenoRuntimeVersion = async (): Promise<{
+  minimum?: string;
+  error?: { message: string };
+}> => {
+  try {
+    const metadataURL = "https://api.slack.com/slackcli/metadata.json";
+    const response = await fetch(metadataURL);
+    if (!response.ok) {
+      throw new Error("Failed to collect upstream CLI metadata");
+    }
+    const metadata = await response.json();
+    const version = metadata?.["deno-runtime"]?.releases[0]?.version;
+    if (!version) {
+      throw new Error("Failed to find the minimum Deno version");
+    }
+    return { minimum: version };
+  } catch (err) {
+    if (err instanceof Error) {
+      return { error: { message: err.message } };
+    }
+    return { error: { message: err } };
+  }
+};
+
+export const getRuntimeVersions = async (): Promise<{
+  versions: RuntimeVersion[];
+}> => {
+  const hostedDenoRuntimeVersion = await getHostedDenoRuntimeVersion();
   const versions = [
     {
       "name": "deno",
       "current": Deno.version.deno,
-      "minimum": "1.20.5",
+      ...hostedDenoRuntimeVersion,
     },
     {
       "name": "typescript",
@@ -29,6 +57,6 @@ export const getExecutionEnvironment = (): {
 
 if (import.meta.main) {
   const protocol = getProtocolInterface(Deno.args);
-  const prunedDoctor = getExecutionEnvironment();
+  const prunedDoctor = await getRuntimeVersions();
   protocol.respond(JSON.stringify(prunedDoctor));
 }
