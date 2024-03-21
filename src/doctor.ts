@@ -4,6 +4,9 @@ import { isNewSemverRelease } from "./utilities.ts";
 type RuntimeVersion = {
   name: string;
   current: string;
+} & RuntimeDetails;
+
+type RuntimeDetails = {
   minimum?: string;
   message?: string;
   error?: {
@@ -11,11 +14,7 @@ type RuntimeVersion = {
   };
 };
 
-const getHostedDenoRuntimeVersion = async (): Promise<{
-  minimum?: string;
-  message?: string;
-  error?: { message: string };
-}> => {
+const getHostedDenoRuntimeVersion = async (): Promise<RuntimeDetails> => {
   try {
     const metadataURL = "https://api.slack.com/slackcli/metadata.json";
     const response = await fetch(metadataURL);
