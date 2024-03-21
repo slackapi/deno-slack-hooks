@@ -1,9 +1,11 @@
 import { getProtocolInterface } from "./deps.ts";
+import { isNewSemverRelease } from "./utilities.ts";
 
 type RuntimeVersion = {
   name: string;
   current: string;
   minimum?: string;
+  message?: string;
   error?: {
     message: string;
   };
@@ -28,6 +30,13 @@ const getHostedDenoRuntimeVersion = async (): Promise<{
     const message = Deno.version.deno !== version
       ? `Applications deployed to Slack use Deno version ${version}`
       : undefined;
+    if (isNewSemverRelease(Deno.version.deno, version)) {
+      return {
+        minimum: version,
+        message,
+        error: { message: "The installed runtime version is not supported" },
+      };
+    }
     return { minimum: version, message };
   } catch (err) {
     if (err instanceof Error) {

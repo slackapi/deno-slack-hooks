@@ -96,7 +96,7 @@ Deno.test("doctor hook tests", async (t) => {
     assertEquals(actual, expected);
   });
 
-  await t.step("mismatched upstream requirements note difference", async () => {
+  await t.step("unsupported upstream runtimes note differences", async () => {
     mockFetch.mock("GET@/slackcli/metadata.json", (_req: Request) => {
       return new Response(JSON.stringify(MOCK_SLACK_CLI_MANIFEST));
     });
@@ -110,6 +110,9 @@ Deno.test("doctor hook tests", async (t) => {
           current: "1.2.3",
           minimum: "1.101.1",
           message: "Applications deployed to Slack use Deno version 1.101.1",
+          error: {
+            message: "The installed runtime version is not supported",
+          },
         },
         {
           name: "typescript",
