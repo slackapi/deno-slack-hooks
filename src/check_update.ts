@@ -229,8 +229,10 @@ export async function fetchLatestModuleVersion(
 }
 
 /**
- * extractVersion takes in a string, searches for a version,
+ * extractVersion takes in a URL formatted string, searches for a version,
  * and, if version is found, returns that version.
+ *
+ * Example input: https://deno.land/x/deno_slack_sdk@2.6.0/
  */
 export function extractVersion(str: string): string {
   const at = str.indexOf("@");
