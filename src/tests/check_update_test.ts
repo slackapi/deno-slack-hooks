@@ -109,13 +109,13 @@ Deno.test("check-update hook tests", async (t) => {
   await t.step("extractDependencies method", async (evT) => {
     await evT.step(
       "given import_map.json or slack.json file contents, an array of key, value dependency pairs is returned",
-      async () => {
-        const importMapActual = await extractDependencies(
+      () => {
+        const importMapActual = extractDependencies(
           JSON.parse(MOCK_IMPORT_MAP_JSON),
           "imports",
         );
 
-        const slackHooksActual = await extractDependencies(
+        const slackHooksActual = extractDependencies(
           JSON.parse(MOCK_SLACK_JSON),
           "hooks",
         );
