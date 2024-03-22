@@ -52,7 +52,7 @@ Deno.test("doctor hook tests", async (t) => {
           name: "deno",
           current: "1.2.3",
           error: {
-            message: "Failed to collect upstream CLI metadata",
+            message: "Failed to collect upstream CLI metadata - 404",
           },
         },
         {

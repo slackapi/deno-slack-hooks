@@ -17,8 +17,10 @@ const getHostedDenoRuntimeVersion = async (): Promise<RuntimeDetails> => {
   try {
     const metadataURL = "https://api.slack.com/slackcli/metadata.json";
     const response = await fetch(metadataURL);
-    if (!response.ok) {
-      throw new Error("Failed to collect upstream CLI metadata");
+    if (!response.ok || response.status !== 200) {
+      throw new Error(
+        `Failed to collect upstream CLI metadata - ${response.status}`,
+      );
     }
     const metadata = await response.json();
     const version = metadata?.["deno-runtime"]?.releases[0]?.version;
