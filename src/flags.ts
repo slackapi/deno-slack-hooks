@@ -4,7 +4,7 @@ const UNSAFELY_IGNORE_CERT_ERRORS_FLAG =
   "sdk-unsafely-ignore-certificate-errors";
 const SLACK_DEV_DOMAIN_FLAG = "sdk-slack-dev-domain";
 
-export const getStartHookAdditionalDenoFlags = (args: string[]): string => {
+export const getOptionalDevDomainFlag = (args: string[]): string => {
   const parsedArgs = parseCLIArguments(args);
   const extraFlagValue = parsedArgs[SLACK_DEV_DOMAIN_FLAG] ??
     parsedArgs[UNSAFELY_IGNORE_CERT_ERRORS_FLAG] ?? "";

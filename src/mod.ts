@@ -1,8 +1,8 @@
 import { HOOKS_TAG, RUNTIME_TAG } from "./libraries.ts";
-import { getStartHookAdditionalDenoFlags } from "./flags.ts";
+import { getOptionalDevDomainFlag } from "./flags.ts";
 
 export const projectScripts = (args: string[]) => {
-  const startHookFlags = getStartHookAdditionalDenoFlags(args);
+  const devDomainFlag = getOptionalDevDomainFlag(args);
   return {
     "runtime": "deno",
     "hooks": {
@@ -13,7 +13,7 @@ export const projectScripts = (args: string[]) => {
       "build":
         `deno run -q --config=deno.jsonc --allow-read --allow-write --allow-net --allow-run --allow-env https://deno.land/x/${HOOKS_TAG}/build.ts`,
       "start":
-        `deno run -q --config=deno.jsonc --allow-read --allow-net --allow-run --allow-env https://deno.land/x/${RUNTIME_TAG}/local-run.ts ${startHookFlags}`,
+        `deno run -q --config=deno.jsonc --allow-read --allow-net --allow-run --allow-env https://deno.land/x/${RUNTIME_TAG}/local-run.ts ${devDomainFlag}`,
       "check-update":
         `deno run -q --config=deno.jsonc --allow-read --allow-net https://deno.land/x/${HOOKS_TAG}/check_update.ts`,
       "install-update":
