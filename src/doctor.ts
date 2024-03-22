@@ -1,4 +1,5 @@
 import { getProtocolInterface } from "./deps.ts";
+import { parseDevDomain } from "./flags.ts";
 import { isNewSemverRelease } from "./utilities.ts";
 
 type RuntimeVersion = {
@@ -13,9 +14,12 @@ type RuntimeDetails = {
   };
 };
 
-const getHostedDenoRuntimeVersion = async (): Promise<RuntimeDetails> => {
+const getHostedDenoRuntimeVersion = async (
+  devDomain: string,
+): Promise<RuntimeDetails> => {
   try {
-    const metadataURL = "https://api.slack.com/slackcli/metadata.json";
+    const apiHost = devDomain || "slack.com";
+    const metadataURL = `https://api.${apiHost}/slackcli/metadata.json`;
     const response = await fetch(metadataURL);
     if (!response.ok) {
       throw new Error("Failed to collect upstream CLI metadata");
@@ -43,10 +47,10 @@ const getHostedDenoRuntimeVersion = async (): Promise<RuntimeDetails> => {
   }
 };
 
-export const getRuntimeVersions = async (): Promise<{
+export const getRuntimeVersions = async (devDomain: string): Promise<{
   versions: RuntimeVersion[];
 }> => {
-  const hostedDenoRuntimeVersion = await getHostedDenoRuntimeVersion();
+  const hostedDenoRuntimeVersion = await getHostedDenoRuntimeVersion(devDomain);
   const versions = [
     {
       "name": "deno",
@@ -67,6 +71,6 @@ export const getRuntimeVersions = async (): Promise<{
 
 if (import.meta.main) {
   const protocol = getProtocolInterface(Deno.args);
-  const prunedDoctor = await getRuntimeVersions();
+  const prunedDoctor = await getRuntimeVersions(parseDevDomain(Deno.args));
   protocol.respond(JSON.stringify(prunedDoctor));
 }

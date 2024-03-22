@@ -1,5 +1,5 @@
 import { assertEquals } from "../dev_deps.ts";
-import { getOptionalDevDomainFlag } from "../flags.ts";
+import { getOptionalDevDomainFlag, parseDevDomain } from "../flags.ts";
 
 Deno.test("getOptionalDevDomainFlag sets sdk-slack-dev-domain, with legacy flag using =", () => {
   const result = getOptionalDevDomainFlag([
@@ -51,4 +51,16 @@ Deno.test("getOptionalDevDomainFlag passes through empty flags", () => {
 Deno.test("getOptionalDevDomainFlag passes ignores unsupported flags", () => {
   const result = getOptionalDevDomainFlag(["--nonsense=foo"]);
   assertEquals(result, "");
+});
+
+Deno.test("parseDevDomain function", async (t) => {
+  await t.step("parses the right flag", () => {
+    const domain = parseDevDomain(["--sdk-slack-dev-domain=foo.com"]);
+    assertEquals(domain, "foo.com");
+  });
+
+  Deno.test("parseDevDomain defaults to empty string", () => {
+    const domain = parseDevDomain([]);
+    assertEquals(domain, "");
+  });
 });

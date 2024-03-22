@@ -19,7 +19,7 @@ export const projectScripts = (args: string[]) => {
       "install-update":
         `deno run -q --config=deno.jsonc --allow-run --allow-read --allow-write --allow-net https://deno.land/x/${HOOKS_TAG}/install_update.ts`,
       "doctor":
-        `deno run -q --config=deno.jsonc --allow-read --allow-net https://deno.land/x/${HOOKS_TAG}/doctor.ts`,
+        `deno run -q --config=deno.jsonc --allow-read --allow-net https://deno.land/x/${HOOKS_TAG}/doctor.ts ${devDomainFlag}`,
     },
     "config": {
       "protocol-version": ["message-boundaries"],
