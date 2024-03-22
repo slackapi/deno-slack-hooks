@@ -1,6 +1,5 @@
 import {
   ensureDir,
-  fmt,
   getProtocolInterface,
   parseCLIArguments,
   path,
@@ -190,41 +189,6 @@ function getAbsoluteDirectory(directoryPath: string): string {
   return path.isAbsolute(directoryPath)
     ? directoryPath
     : path.join(Deno.cwd(), directoryPath);
-}
-
-/**
- * Recursively compiles set of local file paths imported in the specified function.
- */
-function getSourceFilesImported(
-  relativeFnFilePath: string,
-  // deno-lint-ignore no-explicit-any
-  metafile: any,
-  local_files: Set<string>,
-): Set<string> {
-  const root = metafile.inputs[relativeFnFilePath];
-
-  for (const imported of root.imports) {
-    if (imported.external || imported.path.startsWith("http")) {
-      // skip any external imports
-      fmt.printf("skipping %v, external\n", imported.path);
-      continue;
-    }
-    if (local_files.has(imported.path)) {
-      fmt.printf("skipping %v, already in set", imported.path);
-      continue;
-    }
-    local_files.add(imported.path);
-    const sub_files = getSourceFilesImported(
-      imported.path,
-      metafile,
-      local_files,
-    );
-    for (const sub of sub_files) {
-      local_files.add(sub);
-    }
-  }
-
-  return local_files;
 }
 
 if (import.meta.main) {
