@@ -43,7 +43,7 @@ export const validateAndCopyFunctions = async (
     );
 
     // Get set of local src files for function
-    const fnSrcCodeFiles = await getFunctionSourceCodeFiles(workingDirectory, outputDirectory, fnFilePath);
+    const fnSrcCodeFiles = await getFunctionSourceCodeFiles(workingDirectory, fnFilePath);
     for (const srcFile of fnSrcCodeFiles) {
       srcCodeFilesToCopy.add(srcFile);
     }
@@ -89,25 +89,11 @@ async function resolveImportMapPath(
 async function resolveDenoConfigPath(
   directory: string = Deno.cwd(),
 ): Promise<string> {
-  for (const name of ["deno.json", "deno.jsonc"]) {
-    const denoConfigPath = path.join(directory, name);
-    try {
-      await Deno.stat(denoConfigPath);
-      return denoConfigPath;
-    } catch (error) {
-      if (!(error instanceof Deno.errors.NotFound)) {
-        throw error;
-      }
-    }
-  }
-  throw new Error(
-    `Could not find a deno.json or deno.jsonc file in the current directory.`,
-  );
+  return await resolveFilePath(["deno.json", "deno.jsonc"], directory);
 }
 
 const getFunctionSourceCodeFiles = async (
   workingDirectory: string,
-  outputDirectory: string,
   fnFilePath: string,
 ): Promise<Set<string>> => {
   // run deno info to get set of relevant local src files imported in function
