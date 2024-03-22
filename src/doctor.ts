@@ -7,7 +7,6 @@ type RuntimeVersion = {
 } & RuntimeDetails;
 
 type RuntimeDetails = {
-  minimum?: string;
   message?: string;
   error?: {
     message: string;
@@ -31,12 +30,11 @@ const getHostedDenoRuntimeVersion = async (): Promise<RuntimeDetails> => {
       : undefined;
     if (isNewSemverRelease(Deno.version.deno, version)) {
       return {
-        minimum: version,
         message,
         error: { message: "The installed runtime version is not supported" },
       };
     }
-    return { minimum: version, message };
+    return { message };
   } catch (err) {
     if (err instanceof Error) {
       return { error: { message: err.message } };

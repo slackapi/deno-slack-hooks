@@ -80,7 +80,6 @@ Deno.test("doctor hook tests", async (t) => {
         {
           name: "deno",
           current: "1.101.1",
-          minimum: "1.101.1",
           message: undefined,
         },
         {
@@ -108,7 +107,6 @@ Deno.test("doctor hook tests", async (t) => {
         {
           name: "deno",
           current: "1.2.3",
-          minimum: "1.101.1",
           message: "Applications deployed to Slack use Deno version 1.101.1",
           error: {
             message: "The installed runtime version is not supported",
