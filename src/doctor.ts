@@ -25,7 +25,13 @@ const getHostedDenoRuntimeVersion = async (): Promise<RuntimeDetails> => {
     const metadata = await response.json();
     const version = metadata?.["deno-runtime"]?.releases[0]?.version;
     if (!version) {
-      throw new Error("Failed to find the minimum Deno version");
+      const details = JSON.stringify(metadata, null, "  ");
+      return {
+        message: `Upstream CLI metadata response included:\n${details}`,
+        error: {
+          message: "Failed to find the minimum Deno version",
+        },
+      };
     }
     const message = Deno.version.deno !== version
       ? `Applications deployed to Slack use Deno version ${version}`

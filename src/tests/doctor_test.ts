@@ -126,8 +126,11 @@ Deno.test("doctor hook tests", async (t) => {
   });
 
   await t.step("missing minimums from cli metadata are noted", async () => {
+    const metadata = {
+      runtimes: ["deno", "node"],
+    };
     mockFetch.mock("GET@/slackcli/metadata.json", (_req: Request) => {
-      return new Response(JSON.stringify({}));
+      return new Response(JSON.stringify(metadata));
     });
     Deno.version.deno = "1.2.3";
 
@@ -137,6 +140,9 @@ Deno.test("doctor hook tests", async (t) => {
         {
           name: "deno",
           current: "1.2.3",
+          message: `Upstream CLI metadata response included:\n${
+            JSON.stringify(metadata, null, 2)
+          }`,
           error: {
             message: "Failed to find the minimum Deno version",
           },
