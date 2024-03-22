@@ -9,10 +9,11 @@ import type { Protocol } from "./deps.ts";
 import { cleanManifest, getManifest } from "./get_manifest.ts";
 import { validateManifestFunctions } from "./utilities.ts";
 import {
-  // DenoBundler,
+  DenoBundler,
   EsbuildBundler,
+  DenoInfo,
 } from "./bundler/mods.ts";
-// import { BundleError } from "./errors.ts";
+import { BundleError } from "./errors.ts";
 import { ensureFile } from "https://deno.land/std@0.134.0/fs/ensure_file.ts";
 
 export const validateAndCreateFunctions = async (
@@ -46,41 +47,38 @@ export const validateAndCreateFunctions = async (
       workingDirectory,
       fnDef.source_file,
     );
-    // compile list of local files used by the bundler (to be copied in their raw format final step)
-    const srcFilesUsed = await createFunctionFile(
+    await createFunctionFile(
       workingDirectory,
       outputBundleDirectory,
       fnId,
       fnFilePath,
-      fnDef.source_file,
       protocol,
     );
 
-    for (const srcFile of srcFilesUsed) {
+    // compile list of relevant src files to copy
+    const fnSrcCodeFiles = await getFunctionSourceCodeFiles(workingDirectory, fnFilePath);
+    for (const srcFile of fnSrcCodeFiles) {
       srcFilesToCopy.add(srcFile);
     }
   }
-  fmt.printf("========FILES TO COPY!=======\n");
-  fmt.printf(new Array(...srcFilesToCopy).join(" | "));
-  fmt.printf("\n=============================\n");
 
-  // copy all raw files to second raw output dir, then let the CLI zip and upload
-  // TODO: write import_map.json if it exists
-  for (const srcFnRelativePath of srcFilesToCopy) {
-    const fromPath = path.join(
-      workingDirectory,
-      srcFnRelativePath,
-    );
-    const toPath = path.join(outputRawDirectory, srcFnRelativePath);
-    await ensureFile(toPath);
-    await Deno.copyFile(fromPath, toPath);
+  // Write src files to second raw output dir, then let the CLI zip and upload
+  for (const absSrcPath of srcFilesToCopy) {
+    const absDstPath = absSrcPath.replace(workingDirectory, outputRawDirectory);
+    await ensureDir(path.dirname(absDstPath));
+    await Deno.copyFile(absSrcPath, absDstPath);
   }
+
+  // also copy import_map.json to second raw output dir
+  const importMapPath = await resolveImportMapPath(workingDirectory);
+  await Deno.copyFile(importMapPath, path.join(outputRawDirectory, "import_map.json"));
 };
 
-async function resolveDenoConfigPath(
+async function resolveFilePath(
+  possibleFileNames: string[],
   directory: string = Deno.cwd(),
 ): Promise<string> {
-  for (const name of ["deno.json", "deno.jsonc"]) {
+  for(const name of possibleFileNames) {
     const denoConfigPath = path.join(directory, name);
     try {
       await Deno.stat(denoConfigPath);
@@ -92,23 +90,32 @@ async function resolveDenoConfigPath(
     }
   }
   throw new Error(
-    `Could not find a deno.json or deno.jsonc file in the current directory.`,
+    `Could not find a file with one of names [${possibleFileNames.join(', ')}] in the current directory.`,
   );
+}
+
+async function resolveImportMapPath(
+  directory: string = Dwno.cwd()
+): Promise<string> {
+  return await resolveFilePath(["import_map.json"], directory);
+}
+
+async function resolveDenoConfigPath(
+  directory: string = Deno.cwd(),
+): Promise<string> {
+  return await resolveFilePath(["deno.json", "deno.jsonc"], directory);
 }
 
 const createFunctionFile = async (
   workingDirectory: string,
   outputDirectory: string,
   fnId: string,
-  fnFilePathAbsolute: string,
-  fnFilePathRelative: string,
+  fnFilePath: string,
   protocol: Protocol,
-): Promise<Set<string>> => {
-  const outputFnFileRelative = path.join("functions", `${fnId}.js`);
-  const fnBundledPath = path.join(outputDirectory, outputFnFileRelative);
+) => {
+  const fnFileRelative = path.join("functions", `${fnId}.js`);
+  const fnBundledPath = path.join(outputDirectory, fnFileRelative);
 
-  // Use ESBuild bundler for metafile report
-  /*
   try {
     await DenoBundler.bundle({
       entrypoint: fnFilePath,
@@ -121,34 +128,37 @@ const createFunctionFile = async (
     }
 
     // TODO: once Protocol can handle debug add a debug statement here
-  }
-  */
-  try {
-    const bundle = await EsbuildBundler.bundle({
-      entrypoint: fnFilePathAbsolute,
-      absWorkingDir: workingDirectory,
-      configPath: await resolveDenoConfigPath(workingDirectory),
-    });
-    await Deno.writeFile(fnBundledPath, bundle.outputFiles[0].contents);
 
-    // compile list of local files to be copied into raw package
-    const metafile = bundle.metafile;
-    await Deno.writeTextFile(
-      `/Users/mniemer/workplace/song-of-the-day/${fnId}-meta.json`,
-      JSON.stringify(metafile),
-    );
-
-    const local_files_used = getSourceFilesImported(
-      fnFilePathRelative,
-      metafile,
-      new Set([fnFilePathRelative]),
-    );
-    return local_files_used;
-  } catch (esbuildError) {
-    protocol.error(`Error bundling function file "${fnId}" with esbuild`);
-    throw esbuildError;
+    try {
+      const bundle = await EsbuildBundler.bundle({
+        entrypoint: fnFilePath,
+        absWorkingDir: workingDirectory,
+        configPath: await resolveDenoConfigPath(workingDirectory),
+      });
+      await Deno.writeFile(fnBundledPath, bundle);
+    } catch (esbuildError) {
+      protocol.error(`Error bundling function file "${fnId}" with esbuild`);
+      throw esbuildError;
+    }
   }
 };
+
+const getFunctionSourceCodeFiles = async (
+  workingDirectory: string,
+  fnFilePath: string,
+): Promise<Set<string>> => {
+  // run deno info to get set of relevant local src files imported in function
+  const fnMetadata = await DenoInfo.info(fnFilePath);
+
+  const fnSourceCodeFiles = new Set<string>();
+  for (const mod of fnMetadata.modules) {
+    const absPath = mod.specifier;
+    if (absPath != null && absPath.startsWith("file://")) {
+      fnSourceCodeFiles.add(absPath.replace("file://", ""));
+    }
+  }
+  return fnSourceCodeFiles;
+} 
 
 /**
  * Recursively deletes the specified directory.
