@@ -7,27 +7,30 @@ import {
 import type { Protocol } from "./deps.ts";
 import { cleanManifest, getManifest } from "./get_manifest.ts";
 import { validateManifestFunctions } from "./utilities.ts";
-import { DenoBundler, EsbuildBundler } from "./bundler/mods.ts";
+import { DenoBundler, EsbuildBundler, DenoInfo, DenoVendor } from "./bundler/mods.ts";
 import { BundleError } from "./errors.ts";
 
-export const validateAndCreateFunctions = async (
+// [@mniemer prototype for non-bundled executable]
+// This build script has been updated in the following ways:
+// - instead of running `deno build` or `esbuild` on function files, run `deno info` on each function file to discover all relevant src code
+// - copy import_map.json to the output dir in addition to deno.jsonc so the `deno vendor` command can work
+// - do not strip fn.source_file from the generated manifest, since deno-slack-runtime will need that at runtime to dispatch payloads to correct fn def
+// - run deno `deno vendor` on all src files to cache remote deps in vendor subdir
+
+export const validateAndCopyFunctions = async (
   workingDirectory: string,
   outputDirectory: string,
   // deno-lint-ignore no-explicit-any
   manifest: any,
   protocol: Protocol,
-) => {
-  // Ensure functions output directory exists
-  const functionsPath = path.join(outputDirectory, "functions");
-  await ensureDir(functionsPath);
-
+): Promise<Array<string>> => {
   // Ensure manifest and function userland exists and is valid
   await validateManifestFunctions(
     workingDirectory,
     manifest,
   );
 
-  // Write out functions to disk
+  const srcCodeFilesToCopy = new Set<string>();
   for (const fnId in manifest.functions) {
     const fnDef = manifest.functions[fnId];
     // For API type functions, there are no function files.
@@ -38,15 +41,50 @@ export const validateAndCreateFunctions = async (
       workingDirectory,
       fnDef.source_file,
     );
-    await createFunctionFile(
-      workingDirectory,
-      outputDirectory,
-      fnId,
-      fnFilePath,
-      protocol,
-    );
+
+    // Get set of local src files for function
+    const fnSrcCodeFiles = await getFunctionSourceCodeFiles(workingDirectory, outputDirectory, fnFilePath);
+    for (const srcFile of fnSrcCodeFiles) {
+      srcCodeFilesToCopy.add(srcFile);
+    }
   }
+
+  // Write src files to disk
+  const outputFileSpecifiers = new Array<string>();
+  for (const absSrcPath of srcCodeFilesToCopy) {
+    const absDstPath = absSrcPath.replace(workingDirectory, outputDirectory);
+    await ensureDir(path.dirname(absDstPath));
+    await Deno.copyFile(absSrcPath, absDstPath);
+    outputFileSpecifiers.push(absDstPath);
+  }
+  return outputFileSpecifiers;
 };
+
+async function resolveFilePath(
+  possibleFileNames: string[],
+  directory: string = Deno.cwd(),
+): Promise<string> {
+  for(const name of possibleFileNames) {
+    const denoConfigPath = path.join(directory, name);
+    try {
+      await Deno.stat(denoConfigPath);
+      return denoConfigPath;
+    } catch (error) {
+      if (!(error instanceof Deno.errors.NotFound)) {
+        throw error;
+      }
+    }
+  }
+  throw new Error(
+    `Could not find a file with one of names [${possibleFileNames.join(', ')}] in the current directory.`,
+  );
+}
+
+async function resolveImportMapPath(
+  directory: string = Dwno.cwd()
+): Promise<string> {
+  return await resolveFilePath(["import_map.json"], directory)
+}
 
 async function resolveDenoConfigPath(
   directory: string = Deno.cwd(),
@@ -67,42 +105,23 @@ async function resolveDenoConfigPath(
   );
 }
 
-const createFunctionFile = async (
+const getFunctionSourceCodeFiles = async (
   workingDirectory: string,
   outputDirectory: string,
-  fnId: string,
   fnFilePath: string,
-  protocol: Protocol,
-) => {
-  const fnFileRelative = path.join("functions", `${fnId}.js`);
-  const fnBundledPath = path.join(outputDirectory, fnFileRelative);
-
-  try {
-    await DenoBundler.bundle({
-      entrypoint: fnFilePath,
-      outFile: fnBundledPath,
-    });
-  } catch (denoBundleErr) {
-    if (!(denoBundleErr instanceof BundleError)) {
-      protocol.error(`Error bundling function file "${fnId}" with Deno`);
-      throw denoBundleErr;
-    }
-
-    // TODO: once Protocol can handle debug add a debug statement here
-
-    try {
-      const bundle = await EsbuildBundler.bundle({
-        entrypoint: fnFilePath,
-        absWorkingDir: workingDirectory,
-        configPath: await resolveDenoConfigPath(workingDirectory),
-      });
-      await Deno.writeFile(fnBundledPath, bundle);
-    } catch (esbuildError) {
-      protocol.error(`Error bundling function file "${fnId}" with esbuild`);
-      throw esbuildError;
+): Promise<Set<string>> => {
+  // run deno info to get set of relevant local src files imported in function
+  const fnMetadata = await DenoInfo.info(fnFilePath);
+  
+  const fnSourceCodeFiles = new Set<string>();
+  for (const mod of fnMetadata.modules) {
+    const absPath = mod.specifier;
+    if (absPath != null && absPath.startsWith("file://")) {
+      fnSourceCodeFiles.add(absPath.replace("file://", ""));
     }
   }
-};
+  return fnSourceCodeFiles;
+}
 
 /**
  * Recursively deletes the specified directory.
@@ -135,22 +154,36 @@ if (import.meta.main) {
 
   // Clean output dir prior to build
   await removeDirectory(outputDirectory);
+  await ensureDir(outputDirectory);
 
   const workingDirectory = path.isAbsolute(source || "")
     ? source
     : path.join(Deno.cwd(), source || "");
 
+  // get manifest & write to output dir
   const generatedManifest = await getManifest(Deno.cwd());
-  await validateAndCreateFunctions(
+  const manifestPath = path.join(outputDirectory, "manifest.json");
+  await Deno.writeTextFile(
+    manifestPath,
+    JSON.stringify(generatedManifest, null, 2),
+  );
+
+  // copy src functions & deps to output dir
+  const outputFileSpecifiers = await validateAndCopyFunctions(
     workingDirectory,
     outputDirectory,
     generatedManifest,
     protocol,
   );
-  const prunedManifest = cleanManifest(generatedManifest);
-  const manifestPath = path.join(outputDirectory, "manifest.json");
-  await Deno.writeTextFile(
-    manifestPath,
-    JSON.stringify(prunedManifest, null, 2),
-  );
+
+  // copy deno.jsonc to output dir
+  const denoConfigPath = await resolveDenoConfigPath(workingDirectory);
+  await Deno.copyFile(denoConfigPath, path.join(outputDirectory, "deno.jsonc"));
+
+  // copy import_map.json to output dir
+  const importMapPath = await resolveImportMapPath(workingDirectory);
+  await Deno.copyFile(importMapPath, path.join(outputDirectory, "import_map.json"));
+
+  // vendorize remote dependencies in output dir
+  await DenoVendor.vendor(outputDirectory, outputFileSpecifiers);
 }
