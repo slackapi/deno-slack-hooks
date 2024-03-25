@@ -1,5 +1,11 @@
-import { assertEquals } from "../dev_deps.ts";
-import { mockFetch } from "../dev_deps.ts";
+import {
+  assertEquals,
+  assertSpyCall,
+  assertSpyCalls,
+  mockFetch,
+  MockProtocol,
+  Spy,
+} from "../dev_deps.ts";
 import { getRuntimeVersions } from "../doctor.ts";
 
 const REAL_DENO_VERSION = Deno.version;
@@ -40,20 +46,19 @@ Deno.test("doctor hook tests", async (t) => {
   mockFetch.install();
 
   await t.step("known runtime values for the system are returned", async () => {
+    const protocol = MockProtocol();
+    const mockResponse = new Response(null, { status: 404 });
     mockFetch.mock("GET@/slackcli/metadata.json", (_req: Request) => {
-      return new Response(null, { status: 404 });
+      return mockResponse;
     });
     Deno.version.deno = "1.2.3";
 
-    const actual = await getRuntimeVersions();
+    const actual = await getRuntimeVersions(protocol);
     const expected = {
       versions: [
         {
           name: "deno",
           current: "1.2.3",
-          error: {
-            message: "Failed to collect upstream CLI metadata - 404",
-          },
         },
         {
           name: "typescript",
@@ -66,15 +71,23 @@ Deno.test("doctor hook tests", async (t) => {
       ],
     };
     assertEquals(actual, expected);
+    assertSpyCalls(protocol.warn as Spy, 2);
+    assertSpyCall(protocol.warn as Spy, 0, {
+      args: ["Failed to collect upstream CLI metadata:"],
+    });
+    assertSpyCall(protocol.warn as Spy, 1, {
+      args: [mockResponse],
+    });
   });
 
   await t.step("matched upstream requirements return success", async () => {
+    const protocol = MockProtocol();
     mockFetch.mock("GET@/slackcli/metadata.json", (_req: Request) => {
       return new Response(JSON.stringify(MOCK_SLACK_CLI_MANIFEST));
     });
     Deno.version.deno = "1.101.1";
 
-    const actual = await getRuntimeVersions();
+    const actual = await getRuntimeVersions(protocol);
     const expected = {
       versions: [
         {
@@ -96,12 +109,13 @@ Deno.test("doctor hook tests", async (t) => {
   });
 
   await t.step("unsupported upstream runtimes note differences", async () => {
+    const protocol = MockProtocol();
     mockFetch.mock("GET@/slackcli/metadata.json", (_req: Request) => {
       return new Response(JSON.stringify(MOCK_SLACK_CLI_MANIFEST));
     });
     Deno.version.deno = "1.2.3";
 
-    const actual = await getRuntimeVersions();
+    const actual = await getRuntimeVersions(protocol);
     const expected = {
       versions: [
         {
@@ -123,9 +137,11 @@ Deno.test("doctor hook tests", async (t) => {
       ],
     };
     assertEquals(actual, expected);
+    assertSpyCalls(protocol.warn as Spy, 0);
   });
 
   await t.step("missing minimums from cli metadata are noted", async () => {
+    const protocol = MockProtocol();
     const metadata = {
       runtimes: ["deno", "node"],
     };
@@ -134,18 +150,12 @@ Deno.test("doctor hook tests", async (t) => {
     });
     Deno.version.deno = "1.2.3";
 
-    const actual = await getRuntimeVersions();
+    const actual = await getRuntimeVersions(protocol);
     const expected = {
       versions: [
         {
           name: "deno",
           current: "1.2.3",
-          message: `Upstream CLI metadata response included:\n${
-            JSON.stringify(metadata, null, 2)
-          }`,
-          error: {
-            message: "Failed to find the minimum Deno version",
-          },
         },
         {
           name: "typescript",
@@ -158,6 +168,48 @@ Deno.test("doctor hook tests", async (t) => {
       ],
     };
     assertEquals(actual, expected);
+    assertSpyCalls(protocol.warn as Spy, 2);
+    assertSpyCall(protocol.warn as Spy, 0, {
+      args: [
+        "Failed to find the minimum Deno version in the upstream CLI metadata response:",
+      ],
+    });
+    assertSpyCall(protocol.warn as Spy, 1, {
+      args: [JSON.stringify(metadata, null, "  ")],
+    });
+  });
+
+  await t.step("invalid body in http responses are caught", async () => {
+    const protocol = MockProtocol();
+    mockFetch.mock("GET@/slackcli/metadata.json", (_req: Request) => {
+      return new Response("{");
+    });
+    Deno.version.deno = "2.2.2";
+
+    const actual = await getRuntimeVersions(protocol);
+    const expected = {
+      versions: [
+        {
+          name: "deno",
+          current: "2.2.2",
+        },
+        {
+          name: "typescript",
+          current: "5.0.0",
+        },
+        {
+          name: "v8",
+          current: "12.3.456.78",
+        },
+      ],
+    };
+    assertEquals(actual, expected);
+    assertSpyCalls(protocol.warn as Spy, 2);
+    assertSpyCall(protocol.warn as Spy, 0, {
+      args: [
+        "Failed to collect or process upstream CLI metadata:",
+      ],
+    });
   });
 
   Object.defineProperty(Deno, "version", {
