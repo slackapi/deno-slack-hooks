@@ -81,3 +81,22 @@ export async function validateManifestFunctions(
     }
   }
 }
+
+/**
+ * isNewSemverRelease takes two semver formatted strings
+ * and compares them to see if the second argument is a
+ * newer version than the first argument.
+ * If it's newer it returns true, otherwise returns false.
+ */
+export const isNewSemverRelease = (current: string, target: string) => {
+  const [currMajor, currMinor, currPatch] = current
+    .split(".")
+    .map((val) => Number(val));
+  const [targetMajor, targetMinor, targetPatch] = target
+    .split(".")
+    .map((val) => Number(val));
+
+  if (targetMajor !== currMajor) return targetMajor > currMajor;
+  if (targetMinor !== currMinor) return targetMinor > currMinor;
+  return targetPatch > currPatch;
+};

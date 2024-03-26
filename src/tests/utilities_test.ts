@@ -1,5 +1,5 @@
-import { assertRejects } from "../dev_deps.ts";
-import { validateManifestFunctions } from "../utilities.ts";
+import { assertEquals, assertRejects } from "../dev_deps.ts";
+import { isNewSemverRelease, validateManifestFunctions } from "../utilities.ts";
 
 Deno.test("utilities.ts", async (t) => {
   await t.step("validateManifestFunctions function", async (tt) => {
@@ -158,6 +158,48 @@ Deno.test("utilities.ts", async (t) => {
         manifest,
       );
       // If the above doesn't throw, we good
+    });
+  });
+
+  await t.step("isNewSemverRelease method", async (evT) => {
+    await evT.step("returns true for semver updates", () => {
+      assertEquals(isNewSemverRelease("0.0.1", "0.0.2"), true);
+      assertEquals(isNewSemverRelease("0.0.1", "0.2.0"), true);
+      assertEquals(isNewSemverRelease("0.0.1", "2.0.0"), true);
+      assertEquals(isNewSemverRelease("0.1.0", "0.1.1"), true);
+      assertEquals(isNewSemverRelease("0.1.0", "0.2.0"), true);
+      assertEquals(isNewSemverRelease("0.1.0", "2.0.0"), true);
+      assertEquals(isNewSemverRelease("1.0.0", "1.0.1"), true);
+      assertEquals(isNewSemverRelease("1.0.0", "1.1.0"), true);
+      assertEquals(isNewSemverRelease("1.0.0", "1.1.1"), true);
+      assertEquals(isNewSemverRelease("1.0.0", "2.0.0"), true);
+      assertEquals(isNewSemverRelease("0.0.2", "0.0.13"), true);
+    });
+    await evT.step("returns false for semver downgrades", () => {
+      assertEquals(isNewSemverRelease("2.0.0", "1.0.0"), false);
+      assertEquals(isNewSemverRelease("2.0.0", "0.1.0"), false);
+      assertEquals(isNewSemverRelease("2.0.0", "0.3.0"), false);
+      assertEquals(isNewSemverRelease("2.0.0", "0.0.1"), false);
+      assertEquals(isNewSemverRelease("2.0.0", "0.0.3"), false);
+      assertEquals(isNewSemverRelease("2.0.0", "1.1.0"), false);
+      assertEquals(isNewSemverRelease("2.0.0", "1.3.0"), false);
+      assertEquals(isNewSemverRelease("2.0.0", "1.1.1"), false);
+      assertEquals(isNewSemverRelease("2.0.0", "1.3.3"), false);
+      assertEquals(isNewSemverRelease("0.2.0", "0.1.0"), false);
+      assertEquals(isNewSemverRelease("0.2.0", "0.0.1"), false);
+      assertEquals(isNewSemverRelease("0.2.0", "0.0.3"), false);
+      assertEquals(isNewSemverRelease("0.2.0", "0.1.1"), false);
+      assertEquals(isNewSemverRelease("0.2.0", "0.1.3"), false);
+      assertEquals(isNewSemverRelease("0.0.2", "0.0.1"), false);
+      assertEquals(isNewSemverRelease("0.0.20", "0.0.13"), false);
+    });
+    await evT.step("returns false for semver matches", () => {
+      assertEquals(isNewSemverRelease("0.0.1", "0.0.1"), false);
+      assertEquals(isNewSemverRelease("0.1.0", "0.1.0"), false);
+      assertEquals(isNewSemverRelease("0.1.1", "0.1.1"), false);
+      assertEquals(isNewSemverRelease("1.0.0", "1.0.0"), false);
+      assertEquals(isNewSemverRelease("1.0.1", "1.0.1"), false);
+      assertEquals(isNewSemverRelease("1.1.1", "1.1.1"), false);
     });
   });
 });

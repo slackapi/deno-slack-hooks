@@ -8,7 +8,6 @@ import {
   fetchLatestModuleVersion,
   getDenoImportMapFiles,
   hasBreakingChange,
-  isNewSemverRelease,
   readProjectDependencies,
 } from "../check_update.ts";
 
@@ -110,13 +109,13 @@ Deno.test("check-update hook tests", async (t) => {
   await t.step("extractDependencies method", async (evT) => {
     await evT.step(
       "given import_map.json or slack.json file contents, an array of key, value dependency pairs is returned",
-      async () => {
-        const importMapActual = await extractDependencies(
+      () => {
+        const importMapActual = extractDependencies(
           JSON.parse(MOCK_IMPORT_MAP_JSON),
           "imports",
         );
 
-        const slackHooksActual = await extractDependencies(
+        const slackHooksActual = extractDependencies(
           JSON.parse(MOCK_SLACK_JSON),
           "hooks",
         );
@@ -320,46 +319,5 @@ Deno.test("check-update hook tests", async (t) => {
         assertEquals(true, errorMsg.includes("slack.json"));
       },
     );
-  });
-  await t.step("isNewSemverRelease method", async (evT) => {
-    await evT.step("returns true for semver updates", () => {
-      assertEquals(isNewSemverRelease("0.0.1", "0.0.2"), true);
-      assertEquals(isNewSemverRelease("0.0.1", "0.2.0"), true);
-      assertEquals(isNewSemverRelease("0.0.1", "2.0.0"), true);
-      assertEquals(isNewSemverRelease("0.1.0", "0.1.1"), true);
-      assertEquals(isNewSemverRelease("0.1.0", "0.2.0"), true);
-      assertEquals(isNewSemverRelease("0.1.0", "2.0.0"), true);
-      assertEquals(isNewSemverRelease("1.0.0", "1.0.1"), true);
-      assertEquals(isNewSemverRelease("1.0.0", "1.1.0"), true);
-      assertEquals(isNewSemverRelease("1.0.0", "1.1.1"), true);
-      assertEquals(isNewSemverRelease("1.0.0", "2.0.0"), true);
-      assertEquals(isNewSemverRelease("0.0.2", "0.0.13"), true);
-    });
-    await evT.step("returns false for semver downgrades", () => {
-      assertEquals(isNewSemverRelease("2.0.0", "1.0.0"), false);
-      assertEquals(isNewSemverRelease("2.0.0", "0.1.0"), false);
-      assertEquals(isNewSemverRelease("2.0.0", "0.3.0"), false);
-      assertEquals(isNewSemverRelease("2.0.0", "0.0.1"), false);
-      assertEquals(isNewSemverRelease("2.0.0", "0.0.3"), false);
-      assertEquals(isNewSemverRelease("2.0.0", "1.1.0"), false);
-      assertEquals(isNewSemverRelease("2.0.0", "1.3.0"), false);
-      assertEquals(isNewSemverRelease("2.0.0", "1.1.1"), false);
-      assertEquals(isNewSemverRelease("2.0.0", "1.3.3"), false);
-      assertEquals(isNewSemverRelease("0.2.0", "0.1.0"), false);
-      assertEquals(isNewSemverRelease("0.2.0", "0.0.1"), false);
-      assertEquals(isNewSemverRelease("0.2.0", "0.0.3"), false);
-      assertEquals(isNewSemverRelease("0.2.0", "0.1.1"), false);
-      assertEquals(isNewSemverRelease("0.2.0", "0.1.3"), false);
-      assertEquals(isNewSemverRelease("0.0.2", "0.0.1"), false);
-      assertEquals(isNewSemverRelease("0.0.20", "0.0.13"), false);
-    });
-    await evT.step("returns false for semver matches", () => {
-      assertEquals(isNewSemverRelease("0.0.1", "0.0.1"), false);
-      assertEquals(isNewSemverRelease("0.1.0", "0.1.0"), false);
-      assertEquals(isNewSemverRelease("0.1.1", "0.1.1"), false);
-      assertEquals(isNewSemverRelease("1.0.0", "1.0.0"), false);
-      assertEquals(isNewSemverRelease("1.0.1", "1.0.1"), false);
-      assertEquals(isNewSemverRelease("1.1.1", "1.1.1"), false);
-    });
   });
 });

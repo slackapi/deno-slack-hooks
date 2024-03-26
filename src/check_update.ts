@@ -4,7 +4,7 @@ import {
   DENO_SLACK_SDK,
 } from "./libraries.ts";
 import { getProtocolInterface, JSONValue } from "./deps.ts";
-import { getJSON } from "./utilities.ts";
+import { getJSON, isNewSemverRelease } from "./utilities.ts";
 
 const IMPORT_MAP_SDKS = [DENO_SLACK_SDK, DENO_SLACK_API];
 const SLACK_JSON_SDKS = [
@@ -229,8 +229,10 @@ export async function fetchLatestModuleVersion(
 }
 
 /**
- * extractVersion takes in a string, searches for a version,
+ * extractVersion takes in a URL formatted string, searches for a version,
  * and, if version is found, returns that version.
+ *
+ * Example input: https://deno.land/x/deno_slack_sdk@2.6.0/
  */
 export function extractVersion(str: string): string {
   const at = str.indexOf("@");
@@ -244,26 +246,6 @@ export function extractVersion(str: string): string {
     : str.substring(at + 1, slash);
   return version;
 }
-
-/**
- * isNewSemverRelease takes two semver formatted strings
- * and compares them to see if the second argument is a
- * newer version than the first argument.
- * If it's newer it returns true, otherwise returns false.
- */
-
-export const isNewSemverRelease = (current: string, target: string) => {
-  const [currMajor, currMinor, currPatch] = current
-    .split(".")
-    .map((val) => Number(val));
-  const [targetMajor, targetMinor, targetPatch] = target
-    .split(".")
-    .map((val) => Number(val));
-
-  if (targetMajor !== currMajor) return targetMajor > currMajor;
-  if (targetMinor !== currMinor) return targetMinor > currMinor;
-  return targetPatch > currPatch;
-};
 
 /**
  * hasBreakingChange determines whether or not there is a
