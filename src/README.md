@@ -1,5 +1,7 @@
 # deno-slack-hooks
 
+[![codecov](https://codecov.io/gh/slackapi/deno-slack-hooks/graph/badge.svg?token=0WPCEDYVYB)](https://codecov.io/gh/slackapi/deno-slack-hooks)
+
 This library is intended to be used in applications running on Slack's
 next-generation application platform, focused on remixable units of
 functionality encapsulated as ephemeral functions. It implements the
