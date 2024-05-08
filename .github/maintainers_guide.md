@@ -21,7 +21,7 @@ deno task test
 To run the tests along with a coverage report:
 
 ```zsh
-deno task coverage
+deno task test:coverage
 ```
 
 This command is also executed by GitHub Actions, the continuous integration service, for every Pull Request and branch.
