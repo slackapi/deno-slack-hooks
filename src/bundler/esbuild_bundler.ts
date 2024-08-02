@@ -16,7 +16,8 @@ export const EsbuildBundler = {
       const result = await esbuild.build({
         entryPoints: [options.entrypoint],
         platform: "browser",
-        target: "deno1", // TODO: the versions should come from the user defined input
+        // TODO: the versions should come from the user defined input
+        target: "deno1",
         format: "esm", // esm format stands for "ECMAScript module"
         bundle: true, // inline any imported dependencies into the file itself
         absWorkingDir: options.absWorkingDir,
