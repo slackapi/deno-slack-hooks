@@ -1,10 +1,9 @@
-import {
-  ensureDir,
-  getProtocolInterface,
-  parseCLIArguments,
-  path,
-} from "./deps.ts";
-import type { Protocol } from "./deps.ts";
+import * as path from "jsr:@std/path@^1.0.3";
+import { parseArgs } from "jsr:@std/cli@^1.0.4";
+import { ensureDir } from "jsr:@std/fs@^1.0.2";
+import { getProtocolInterface } from "https://deno.land/x/deno_slack_protocols@0.0.2/mod.ts";
+import type { Protocol } from "https://deno.land/x/deno_slack_protocols@0.0.2/types.ts";
+
 import { cleanManifest, getManifest } from "./get_manifest.ts";
 import { validateManifestFunctions } from "./utilities.ts";
 import { DenoBundler, EsbuildBundler } from "./bundler/mods.ts";
@@ -127,7 +126,7 @@ if (import.meta.main) {
   const protocol = getProtocolInterface(Deno.args);
 
   // Massage source and output directories
-  let { source, output } = parseCLIArguments(Deno.args);
+  let { source, output } = parseArgs(Deno.args);
   if (!output) output = "dist";
   const outputDirectory = path.isAbsolute(output)
     ? output

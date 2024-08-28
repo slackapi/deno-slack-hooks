@@ -1,8 +1,11 @@
-import { getProtocolInterface, parseCLIArguments, path } from "./deps.ts";
+import { getProtocolInterface } from "https://deno.land/x/deno_slack_protocols@0.0.2/mod.ts";
+import * as path from "jsr:@std/path@^1.0.3";
+import { parseArgs } from "jsr:@std/cli@^1.0.4";
+
 import { getDefaultExport } from "./utilities.ts";
 
 export const getTrigger = async (args: string[]) => {
-  const source = parseCLIArguments(args).source as string;
+  const source = parseArgs(args).source as string;
 
   if (!source) throw new Error("A source path needs to be defined");
 

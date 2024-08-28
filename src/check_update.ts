@@ -1,9 +1,11 @@
+import type { JsonValue } from "jsr:@std/jsonc@^1.0.1";
+import { getProtocolInterface } from "https://deno.land/x/deno_slack_protocols@0.0.2/mod.ts";
+
 import {
   DENO_SLACK_API,
   DENO_SLACK_HOOKS,
   DENO_SLACK_SDK,
 } from "./libraries.ts";
-import { getProtocolInterface, JSONValue } from "./deps.ts";
 import { getJSON, isNewSemverRelease } from "./utilities.ts";
 
 const IMPORT_MAP_SDKS = [DENO_SLACK_SDK, DENO_SLACK_API];
@@ -197,7 +199,7 @@ export async function getDenoImportMapFiles(
  * value pairs that make use of the dependencies.
  */
 export function extractDependencies(
-  json: JSONValue,
+  json: JsonValue,
   key: string,
 ): [string, string][] {
   // Determine if the JSON passed is an object
