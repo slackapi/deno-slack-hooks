@@ -1,4 +1,4 @@
-import { parseCLIArguments } from "./deps.ts";
+import { parse as parseCLIArguments } from "https://deno.land/std@0.138.0/flags/mod.ts"; // This prevents all dependencies from deps.ts to be installed when they are not needed
 
 const UNSAFELY_IGNORE_CERT_ERRORS_FLAG =
   "sdk-unsafely-ignore-certificate-errors";
