@@ -7,11 +7,11 @@ export const projectScripts = (args: string[]) => {
     "runtime": "deno",
     "hooks": {
       "get-manifest":
-        `deno run -q --config=deno.jsonc --allow-read --allow-net --allow-env https://deno.land/x/${HOOKS_TAG}/get_manifest.ts`,
+        `deno run -q --config=deno.jsonc --allow-read --allow-net --allow-env --allow-sys=onRelease https://deno.land/x/${HOOKS_TAG}/get_manifest.ts`,
       "get-trigger":
         `deno run -q --config=deno.jsonc --allow-read --allow-net --allow-env https://deno.land/x/${HOOKS_TAG}/get_trigger.ts`,
       "build":
-        `deno run -q --config=deno.jsonc --allow-read --allow-write --allow-net --allow-run --allow-env https://deno.land/x/${HOOKS_TAG}/build.ts`,
+        `deno run -q --config=deno.jsonc --allow-read --allow-write --allow-net --allow-run --allow-env --allow-sys=osRelease https://deno.land/x/${HOOKS_TAG}/build.ts`,
       "start":
         `deno run -q --config=deno.jsonc --allow-read --allow-net --allow-run --allow-env https://deno.land/x/${RUNTIME_TAG}/local-run.ts ${startHookFlags}`,
       "check-update":
