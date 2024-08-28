@@ -6,5 +6,5 @@ export type { JSONValue } from "https://deno.land/std@0.149.0/encoding/jsonc.ts"
 export { deepMerge } from "https://deno.land/std@0.134.0/collections/deep_merge.ts";
 export { getProtocolInterface } from "https://deno.land/x/deno_slack_protocols@0.0.2/mod.ts";
 export type { Protocol } from "https://deno.land/x/deno_slack_protocols@0.0.2/types.ts";
-export * as esbuild from "https://deno.land/x/esbuild@v0.19.4/mod.js";
-export { denoPlugins } from "https://deno.land/x/esbuild_deno_loader@0.8.2/mod.ts";
+export * as esbuild from "npm:esbuild@0.20.2";
+export { denoPlugins } from "jsr:@luca/esbuild-deno-loader@0.10.3";
