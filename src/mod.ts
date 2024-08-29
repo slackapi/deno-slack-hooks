@@ -7,7 +7,7 @@ export const projectScripts = (args: string[]) => {
     "runtime": "deno",
     "hooks": {
       "get-manifest":
-        `deno run -q --config=deno.jsonc --allow-read --allow-net --allow-env --allow-sys=onRelease https://deno.land/x/${HOOKS_TAG}/get_manifest.ts`,
+        `deno run -q --config=deno.jsonc --allow-read --allow-net --allow-env --allow-sys=osRelease https://deno.land/x/${HOOKS_TAG}/get_manifest.ts`,
       "get-trigger":
         `deno run -q --config=deno.jsonc --allow-read --allow-net --allow-env https://deno.land/x/${HOOKS_TAG}/get_trigger.ts`,
       "build":
