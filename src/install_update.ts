@@ -1,3 +1,6 @@
+import { getProtocolInterface } from "https://deno.land/x/deno_slack_protocols@0.0.2/mod.ts";
+import type { JsonValue } from "jsr:@std/jsonc@^1.0.1";
+
 import {
   checkForSDKUpdates,
   gatherDependencyFiles,
@@ -5,7 +8,6 @@ import {
 } from "./check_update.ts";
 import { getJSON } from "./utilities.ts";
 import { projectScripts } from "./mod.ts";
-import { getProtocolInterface, JSONValue } from "./deps.ts";
 
 export const SDK_NAME = "the Slack SDK";
 
@@ -114,6 +116,10 @@ export async function updateDependencyFile(
 
     const dependencyKey = dependencyJSON.imports ? "imports" : "hooks";
 
+    if (dependencyJSON[dependencyKey] === undefined) {
+      return [];
+    }
+
     // Update only the dependency-related key in given file ("imports" or "hooks")
     const { updatedDependencies, updateSummary } = updateDependencyMap(
       dependencyJSON[dependencyKey],
@@ -142,7 +148,7 @@ export async function updateDependencyFile(
  * an updated map of all dependencies, as well as an update summary of each.
  */
 export function updateDependencyMap(
-  dependencyMap: JSONValue,
+  dependencyMap: JsonValue,
   releases: Release[],
 ) {
   const mapIsObject = dependencyMap && typeof dependencyMap === "object" &&

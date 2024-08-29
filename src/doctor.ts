@@ -1,4 +1,6 @@
-import { getProtocolInterface, Protocol } from "./deps.ts";
+import { getProtocolInterface } from "https://deno.land/x/deno_slack_protocols@0.0.2/mod.ts";
+import type { Protocol } from "https://deno.land/x/deno_slack_protocols@0.0.2/types.ts";
+
 import { isNewSemverRelease } from "./utilities.ts";
 
 type RuntimeVersion = {

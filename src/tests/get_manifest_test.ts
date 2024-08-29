@@ -8,7 +8,7 @@ import {
   assertRejects,
   assertStringIncludes,
 } from "../dev_deps.ts";
-import { path } from "../deps.ts";
+import * as path from "jsr:@std/path@^1.0.3";
 
 Deno.test("get-manifest hook tests", async (t) => {
   await t.step(

@@ -1,4 +1,7 @@
-import { deepMerge, getProtocolInterface, path } from "./deps.ts";
+import { getProtocolInterface } from "https://deno.land/x/deno_slack_protocols@0.0.2/mod.ts";
+import * as path from "jsr:@std/path@^1.0.3";
+import { deepMerge } from "jsr:@std/collections@^1.0.5";
+
 import { getDefaultExport, validateManifestFunctions } from "./utilities.ts";
 
 // Responsible for taking a working directory, and an output directory

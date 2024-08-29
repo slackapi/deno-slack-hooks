@@ -1,12 +1,13 @@
-import { parseJSONC, path } from "./deps.ts";
-import type { JSONValue } from "./deps.ts";
+import * as path from "jsr:@std/path@^1.0.3";
+import { parse as parseJSONC } from "jsr:@std/jsonc@^1.0.1";
+import type { JsonValue } from "jsr:@std/jsonc@^1.0.1";
 
 /**
  * getJSON attempts to read the given file. If successful,
  * it returns the contents of the file. If the extraction
  * fails, it returns an empty object.
  */
-export async function getJSON(file: string): Promise<JSONValue> {
+export async function getJSON(file: string): Promise<JsonValue> {
   try {
     const fileContents = await Deno.readTextFile(file);
     return parseJSONC(fileContents);

@@ -1,4 +1,5 @@
-import { denoPlugins, esbuild } from "../deps.ts";
+import * as esbuild from "npm:esbuild@0.23.1";
+import { denoPlugins } from "jsr:@luca/esbuild-deno-loader@0.10.3";
 
 type EsbuildBundleOptions = {
   /** The path to the file being bundled */
