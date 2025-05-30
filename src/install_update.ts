@@ -185,9 +185,13 @@ function runBuildHook(): void {
   try {
     const { hooks: { build } } = projectScripts([]);
     const buildArgs = build.split(" ");
+
     Deno.run({ cmd: buildArgs });
   } catch (err) {
-    throw new Error(err);
+    if (err instanceof Error) {
+      throw new Error(err.message, { cause: err });
+    }
+    throw new Error(String(err));
   }
 }
 
