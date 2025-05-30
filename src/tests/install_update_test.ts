@@ -126,11 +126,6 @@ Deno.test("update hook tests", async (t) => {
         };
 
         assertEquals(actual, expected);
-
-        mockFile.prepareVirtualFile(
-          "./slack.json",
-          new TextEncoder().encode("{}"),
-        );
       },
     );
 
