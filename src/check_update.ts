@@ -144,6 +144,8 @@ export async function gatherDependencyFiles(
   }
 > {
   const dependencyFiles: [string, "imports" | "hooks"][] = [
+    ["deno.json", "imports"],
+    ["deno.jsonc", "imports"],
     ["slack.json", "hooks"],
     ["slack.jsonc", "hooks"],
   ];
@@ -162,6 +164,8 @@ export async function gatherDependencyFiles(
  * of filename and dependency key pairs.
  *
  * ex: [["import_map.json", "imports"], ["custom_map.json", "imports"]]
+ *
+ * Removed in Deno 2 for deno.json but kept for backward compatibility.
  */
 export async function getDenoImportMapFiles(
   cwd: string,
