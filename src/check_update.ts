@@ -1,4 +1,5 @@
 import type { JsonValue } from "jsr:@std/jsonc@^1.0.1";
+import { join } from "jsr:@std/path@1.1.0";
 import { getProtocolInterface } from "https://deno.land/x/deno_slack_protocols@0.0.2/mod.ts";
 
 import {
@@ -107,7 +108,7 @@ export async function readProjectDependencies(): Promise<
 
   for (const [fileName, depKey] of dependencyFiles) {
     try {
-      const fileJSON = await getJSON(`${cwd}/${fileName}`);
+      const fileJSON = await getJSON(join(cwd, fileName));
       const fileDependencies = extractDependencies(fileJSON, depKey);
 
       // For each dependency found, compare to SDK-related dependency
@@ -146,24 +147,26 @@ export async function gatherDependencyFiles(
   const dependencyFiles: [string, "imports" | "hooks"][] = [
     ["slack.json", "hooks"],
     ["slack.jsonc", "hooks"],
+    [join(".slack", "hooks.json"), "hooks"],
   ];
 
   // Parse deno.* files for `importMap` dependency file
-  const { denoJSONDepFiles, inaccessibleDenoFiles } =
-    await getDenoImportMapFiles(cwd);
+  const { denoJSONDepFiles, inaccessibleDenoFiles } = await getDenoImportFiles(
+    cwd,
+  );
   dependencyFiles.push(...denoJSONDepFiles);
 
   return { dependencyFiles, inaccessibleDenoFiles };
 }
 
 /**
- * getDenoImportMapFiles cycles through supported deno.* files and,
+ * getDenoImportFiles cycles through supported deno.* files and,
  * if an `importMap` key is found, returns an array of arrays made up
  * of filename and dependency key pairs.
  *
  * ex: [["import_map.json", "imports"], ["custom_map.json", "imports"]]
  */
-export async function getDenoImportMapFiles(
+export async function getDenoImportFiles(
   cwd: string,
 ): Promise<
   {
@@ -177,12 +180,19 @@ export async function getDenoImportMapFiles(
 
   for (const fileName of denoJSONFiles) {
     try {
-      const denoJSON = await getJSON(`${cwd}/${fileName}`);
+      const denoJSON = await getJSON(join(cwd, fileName));
       const jsonIsParsable = denoJSON && typeof denoJSON === "object" &&
-        !Array.isArray(denoJSON) && denoJSON.importMap;
+        !Array.isArray(denoJSON);
 
-      if (jsonIsParsable) {
+      if (!jsonIsParsable) {
+        continue;
+      }
+
+      if (denoJSON.importMap) {
         denoJSONDepFiles.push([`${denoJSON.importMap}`, "imports"]);
+      }
+      if (denoJSON.imports) {
+        denoJSONDepFiles.push([`${fileName}`, "imports"]);
       }
     } catch (err) {
       inaccessibleDenoFiles.push({ name: fileName, error: err });
