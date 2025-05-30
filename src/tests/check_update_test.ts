@@ -21,12 +21,14 @@ const MOCK_SLACK_JSON = JSON.stringify({
 const MOCK_IMPORT_MAP_JSON = JSON.stringify({
   imports: {
     "deno-slack-sdk/": "https://deno.land/x/deno_slack_sdk@0.0.6/",
-    "deno-slack-api/": "https://deno.land/x/deno_slack_api@0.0.6/",
   },
 });
 
 const MOCK_DENO_JSON = JSON.stringify({
   "importMap": "import_map.json",
+  "imports": {
+    "deno-slack-api/": "https://deno.land/x/deno_slack_api@0.0.6/",
+  },
 });
 
 const MOCK_SLACK_JSON_FILE = new TextEncoder().encode(MOCK_SLACK_JSON);
@@ -110,6 +112,11 @@ Deno.test("check-update hook tests", async (t) => {
     await evT.step(
       "given import_map.json or slack.json file contents, an array of key, value dependency pairs is returned",
       () => {
+        const denoJSONActual = extractDependencies(
+          JSON.parse(MOCK_DENO_JSON),
+          "imports",
+        );
+
         const importMapActual = extractDependencies(
           JSON.parse(MOCK_IMPORT_MAP_JSON),
           "imports",
@@ -120,10 +127,15 @@ Deno.test("check-update hook tests", async (t) => {
           "hooks",
         );
 
+        const denoJSONExpected: [string, string][] = [[
+          "deno-slack-api/",
+          "https://deno.land/x/deno_slack_api@0.0.6/",
+        ]];
+
         const importMapExpected: [string, string][] = [[
           "deno-slack-sdk/",
           "https://deno.land/x/deno_slack_sdk@0.0.6/",
-        ], ["deno-slack-api/", "https://deno.land/x/deno_slack_api@0.0.6/"]];
+        ]];
 
         const slackHooksExpected: [string, string][] = [
           [
@@ -133,9 +145,17 @@ Deno.test("check-update hook tests", async (t) => {
         ];
 
         assertEquals(
+          denoJSONActual,
+          denoJSONExpected,
+          `Expected: ${JSON.stringify(denoJSONExpected)}\n Actual: ${
+            JSON.stringify(denoJSONActual)
+          }`,
+        );
+
+        assertEquals(
           importMapActual,
           importMapExpected,
-          `Expected: ${JSON.stringify([])}\n Actual: ${
+          `Expected: ${JSON.stringify(importMapExpected)}\n Actual: ${
             JSON.stringify(importMapActual)
           }`,
         );
@@ -143,8 +163,8 @@ Deno.test("check-update hook tests", async (t) => {
         assertEquals(
           slackHooksActual,
           slackHooksExpected,
-          `Expected: ${JSON.stringify([])}\n Actual: ${
-            JSON.stringify(importMapActual)
+          `Expected: ${JSON.stringify(slackHooksExpected)}\n Actual: ${
+            JSON.stringify(slackHooksActual)
           }`,
         );
       },
