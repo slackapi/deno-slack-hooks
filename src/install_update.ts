@@ -1,5 +1,6 @@
 import { getProtocolInterface } from "https://deno.land/x/deno_slack_protocols@0.0.2/mod.ts";
 import type { JsonValue } from "jsr:@std/jsonc@^1.0.1";
+import { join } from "jsr:@std/path@1.1.0";
 
 import {
   checkForSDKUpdates,
@@ -76,7 +77,7 @@ export async function createUpdateResp(
       // Update dependency file with latest dependency versions
       try {
         const fileUpdateResp = await updateDependencyFile(
-          `${cwd}/${file}`,
+          join(cwd, file),
           releases,
         );
         updateResp.updates = [...updateResp.updates, ...fileUpdateResp];
