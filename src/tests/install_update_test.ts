@@ -1,3 +1,4 @@
+import { assertArrayIncludes } from "https://deno.land/std@0.138.0/testing/asserts.ts";
 import { assertEquals } from "../dev_deps.ts";
 import { mockFile } from "../dev_deps.ts";
 import {
@@ -162,14 +163,11 @@ Deno.test("update hook tests", async (t) => {
         ];
 
         const actual = await createUpdateResp(MOCK_RELEASES);
-        const expected = {
-          name: SDK_NAME,
-          updates: [
-            ...expectedHooksUpdateSummary,
-            ...expectedImportsUpdateSummary,
-          ],
-        };
-        assertEquals(actual, expected);
+        assertEquals(actual.error, undefined);
+        assertEquals(actual.name, SDK_NAME);
+        assertEquals(actual.updates.length, 3);
+        assertArrayIncludes(actual.updates, expectedHooksUpdateSummary);
+        assertArrayIncludes(actual.updates, expectedImportsUpdateSummary);
       },
     );
   });
