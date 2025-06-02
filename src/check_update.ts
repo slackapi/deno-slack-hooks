@@ -1,4 +1,5 @@
 import type { JsonValue } from "jsr:@std/jsonc@^1.0.1";
+import { join } from "jsr:@std/path@1.1.0";
 import { getProtocolInterface } from "https://deno.land/x/deno_slack_protocols@0.0.2/mod.ts";
 
 import {
@@ -107,7 +108,7 @@ export async function readProjectDependencies(): Promise<
 
   for (const [fileName, depKey] of dependencyFiles) {
     try {
-      const fileJSON = await getJSON(`${cwd}/${fileName}`);
+      const fileJSON = await getJSON(join(cwd, fileName));
       const fileDependencies = extractDependencies(fileJSON, depKey);
 
       // For each dependency found, compare to SDK-related dependency
@@ -144,8 +145,11 @@ export async function gatherDependencyFiles(
   }
 > {
   const dependencyFiles: [string, "imports" | "hooks"][] = [
+    ["deno.json", "imports"],
+    ["deno.jsonc", "imports"],
     ["slack.json", "hooks"],
     ["slack.jsonc", "hooks"],
+    [join(".slack", "hooks.json"), "hooks"],
   ];
 
   // Parse deno.* files for `importMap` dependency file
@@ -162,6 +166,8 @@ export async function gatherDependencyFiles(
  * of filename and dependency key pairs.
  *
  * ex: [["import_map.json", "imports"], ["custom_map.json", "imports"]]
+ *
+ * With Deno 2 we favor imports in deno.json but kept this for backward compatibility.
  */
 export async function getDenoImportMapFiles(
   cwd: string,
@@ -177,7 +183,7 @@ export async function getDenoImportMapFiles(
 
   for (const fileName of denoJSONFiles) {
     try {
-      const denoJSON = await getJSON(`${cwd}/${fileName}`);
+      const denoJSON = await getJSON(join(cwd, fileName));
       const jsonIsParsable = denoJSON && typeof denoJSON === "object" &&
         !Array.isArray(denoJSON) && denoJSON.importMap;
 
