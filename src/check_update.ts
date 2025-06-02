@@ -278,7 +278,7 @@ export function createUpdateResp(
   const name = "the Slack SDK";
   const releases = [];
   const message = "";
-  const url = "https://api.slack.com/automation/changelog";
+  const url = "https://docs.slack.dev/changelog";
   const fileErrorMsg = createFileErrorMsg(inaccessibleFiles);
 
   let error = null;
