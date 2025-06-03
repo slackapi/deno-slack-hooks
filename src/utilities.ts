@@ -15,7 +15,9 @@ export async function getJSON(file: string): Promise<JsonValue> {
     if (err instanceof Error) {
       throw new Error(err.message, { cause: err });
     }
-    throw new Error(String(err));
+    throw new Error(
+      `Caught non-Error value: ${String(err)} (type: ${typeof err})`,
+    );
   }
 }
 
