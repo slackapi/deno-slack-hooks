@@ -1,6 +1,6 @@
 import type { JsonValue } from "jsr:@std/jsonc@^1.0.1";
 import { join } from "jsr:@std/path@1.1.0";
-import { getProtocolInterface } from "https://deno.land/x/deno_slack_protocols@0.0.2/mod.ts";
+import { getProtocolInterface } from "jsr:@slack/protocols@0.0.3";
 
 import {
   DENO_SLACK_API,
@@ -73,7 +73,16 @@ export async function createVersionMap(): Promise<
       try {
         latest = await fetchLatestModuleVersion(sdk);
       } catch (err) {
-        error = err;
+        if (err instanceof Error) {
+          error = err;
+        } else {
+          error = new Error(
+            `Caught non-Error value: ${String(err)} (type: ${typeof err})`,
+            {
+              cause: err,
+            },
+          );
+        }
       }
 
       const update = (!!current && !!latest) &&
@@ -123,8 +132,14 @@ export async function readProjectDependencies(): Promise<
           }
         }
       }
-    } catch (err) {
-      inaccessibleFiles.push({ name: fileName, error: err });
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(
+        `Caught non-Error value: ${String(err)} (type: ${typeof err})`,
+        {
+          cause: err,
+        },
+      );
+      inaccessibleFiles.push({ name: fileName, error });
     }
   }
 
@@ -191,7 +206,13 @@ export async function getDenoImportMapFiles(
         denoJSONDepFiles.push([`${denoJSON.importMap}`, "imports"]);
       }
     } catch (err) {
-      inaccessibleDenoFiles.push({ name: fileName, error: err });
+      const error = err instanceof Error ? err : new Error(
+        `Caught non-Error value: ${String(err)} (type: ${typeof err})`,
+        {
+          cause: err,
+        },
+      );
+      inaccessibleDenoFiles.push({ name: fileName, error });
     }
   }
 
@@ -231,8 +252,14 @@ export async function fetchLatestModuleVersion(
     const jsonData = await res.json();
     const hypenatedModuleName = moduleName.replaceAll("_", "-");
     return jsonData[hypenatedModuleName].releases[0].version;
-  } catch (err) {
-    throw new Error(err);
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(
+      `Caught non-Error value: ${String(err)} (type: ${typeof err})`,
+      {
+        cause: err,
+      },
+    );
+    throw error;
   }
 }
 

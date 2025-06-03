@@ -52,16 +52,24 @@ const MOCK_DENO_JSON = JSON.stringify({
   "importMap": "import_map.json",
 });
 
-const MOCK_SLACK_JSON_FILE = new TextEncoder().encode(MOCK_HOOKS_JSON);
+const MOCK_SLACK_JSON_FILE = new TextEncoder().encode(
+  MOCK_HOOKS_JSON,
+) as Uint8Array<ArrayBuffer>;
 const MOCK_DOT_SLACK_HOOKS_JSON_FILE = new TextEncoder().encode(
   MOCK_HOOKS_JSON,
-);
-const MOCK_IMPORT_MAP_FILE = new TextEncoder().encode(MOCK_IMPORTS_JSON);
-const MOCK_DENO_JSON_FILE = new TextEncoder().encode(MOCK_DENO_JSON);
+) as Uint8Array<ArrayBuffer>;
+const MOCK_IMPORT_MAP_FILE = new TextEncoder().encode(
+  MOCK_IMPORTS_JSON,
+) as Uint8Array<ArrayBuffer>;
+const MOCK_DENO_JSON_FILE = new TextEncoder().encode(
+  MOCK_DENO_JSON,
+) as Uint8Array<ArrayBuffer>;
 const MOCK_IMPORTS_IN_DENO_JSON_FILE = new TextEncoder().encode(
   MOCK_IMPORTS_JSON,
-);
-const EMPTY_JSON_FILE = new TextEncoder().encode("{}");
+) as Uint8Array<ArrayBuffer>;
+const EMPTY_JSON_FILE = new TextEncoder().encode("{}") as Uint8Array<
+  ArrayBuffer
+>;
 
 const setEmptyJsonFiles = () => {
   mockFile.prepareVirtualFile("./slack.json", EMPTY_JSON_FILE);

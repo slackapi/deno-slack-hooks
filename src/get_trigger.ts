@@ -1,4 +1,4 @@
-import { getProtocolInterface } from "https://deno.land/x/deno_slack_protocols@0.0.2/mod.ts";
+import { getProtocolInterface } from "jsr:@slack/protocols@0.0.3";
 import * as path from "jsr:@std/path@^1.0.3";
 import { parseArgs } from "jsr:@std/cli@^1.0.4";
 

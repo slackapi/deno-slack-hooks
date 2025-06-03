@@ -3,15 +3,14 @@ export {
   assertExists,
   assertRejects,
   assertStringIncludes,
-} from "https://deno.land/std@0.138.0/testing/asserts.ts";
+} from "jsr:@std/assert@1.0.13";
 export {
   assertSpyCall,
   assertSpyCalls,
   returnsNext,
+  type Spy,
   spy,
   stub,
-} from "https://deno.land/std@0.177.0/testing/mock.ts";
-export type { Spy } from "https://deno.land/std@0.177.0/testing/mock.ts";
-export * as mockFetch from "https://deno.land/x/mock_fetch@0.3.0/mod.ts";
+} from "jsr:@std/testing@1.0.13/mock";
 export * as mockFile from "https://deno.land/x/mock_file@v1.1.2/mod.ts";
-export { MockProtocol } from "https://deno.land/x/deno_slack_protocols@0.0.2/mock.ts";
+export { MockProtocol } from "jsr:@slack/protocols@0.0.3/mock";

@@ -12,18 +12,14 @@
   },
   "lint": {
     "include": ["src"],
-    "exclude": ["src/tests/fixtures"],
-    "rules": {
-      // [TODO]: Remove exclusion after we remove Deno.run
-      "exclude": ["no-deprecated-deno-api"]
-    }
+    "exclude": ["src/tests/fixtures"]
   },
   "test": {
     "include": ["src"],
     "exclude": ["src/tests/fixtures"]
   },
   "tasks": {
-    "test": "deno fmt --check && deno lint && deno test --allow-read --allow-net --allow-write --allow-run --allow-env --allow-import src",
+    "test": "deno fmt --check && deno lint && deno test --allow-read --allow-net --allow-write --allow-run --allow-env src",
     "generate-lcov": "rm -rf .coverage && deno test --reporter=dot --allow-read --allow-net --allow-write --allow-run --allow-env --coverage=.coverage src && deno coverage --exclude=fixtures --exclude=test --lcov --output=lcov.info .coverage",
     "test:coverage": "deno task generate-lcov && deno coverage --exclude=fixtures --exclude=test .coverage"
   },

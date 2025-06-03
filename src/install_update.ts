@@ -1,4 +1,4 @@
-import { getProtocolInterface } from "https://deno.land/x/deno_slack_protocols@0.0.2/mod.ts";
+import { getProtocolInterface } from "jsr:@slack/protocols@0.0.3";
 import type { JsonValue } from "jsr:@std/jsonc@^1.0.1";
 import { join } from "jsr:@std/path@1.1.0";
 
@@ -49,8 +49,10 @@ export const updateDependencies = async () => {
       // but doing so surfaces an issue with the --allow-run flag not
       // being used, despite its presence and success at this level
       runBuildHook();
-    } catch (err) {
-      updateResp.error = { message: err.message };
+    } catch (err: unknown) {
+      updateResp.error = {
+        message: err instanceof Error ? err.message : String(err),
+      };
     }
   }
 
@@ -82,13 +84,19 @@ export async function createUpdateResp(
         );
         updateResp.updates = [...updateResp.updates, ...fileUpdateResp];
       } catch (err) {
+        const message = err instanceof Error
+          ? err.message
+          : `Caught non-Error value: ${String(err)} (type: ${typeof err})`;
         updateResp.error = updateResp.error
-          ? { message: updateResp.error.message += `\n   ${err.message}` }
-          : { message: err.message };
+          ? { message: updateResp.error.message += `\n   ${message}` }
+          : { message: message };
       }
     }
   } catch (err) {
-    updateResp.error = { message: err.message };
+    const message = err instanceof Error
+      ? err.message
+      : `Caught non-Error value: ${String(err)} (type: ${typeof err})`;
+    updateResp.error = { message };
   }
 
   // Pare down updates by removing duplicates
@@ -136,7 +144,12 @@ export async function updateDependencyFile(
 
     return updateSummary;
   } catch (err) {
-    if (!(err.cause instanceof Deno.errors.NotFound)) throw err;
+    const error = err instanceof Error
+      ? err
+      : Error(`Caught non-Error value: ${String(err)} (type: ${typeof err})`, {
+        cause: err,
+      });
+    if (!(error.cause instanceof Deno.errors.NotFound)) throw err;
   }
 
   return [];
@@ -187,6 +200,9 @@ function runBuildHook(): void {
     const { hooks: { build } } = projectScripts([]);
     const buildArgs = build.split(" ");
 
+    // TODO: move to Deno.command only compatible with
+    // @ts-ignore: Deno.run is deprecated but still needed for compatibility
+    // deno-lint-ignore no-deprecated-deno-api
     Deno.run({ cmd: buildArgs });
   } catch (err) {
     if (err instanceof Error) {
