@@ -19,7 +19,7 @@ check out the [Supported Scripts](#supported-scripts) section.
 
 ## Requirements
 
-This library requires a recent (at least 1.22) version of
+This library requires a recent (at least 1.44) version of
 [deno](https://deno.land).
 
 Any invocations of this library require additional
