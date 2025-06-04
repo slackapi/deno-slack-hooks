@@ -1,8 +1,8 @@
 import * as path from "jsr:@std/path@^1.0.3";
 import { parseArgs } from "jsr:@std/cli@^1.0.4";
 import { ensureDir } from "jsr:@std/fs@^1.0.2";
-import { getProtocolInterface } from "https://deno.land/x/deno_slack_protocols@0.0.2/mod.ts";
-import type { Protocol } from "https://deno.land/x/deno_slack_protocols@0.0.2/types.ts";
+import { getProtocolInterface } from "jsr:@slack/protocols@0.0.3";
+import type { Protocol } from "jsr:@slack/protocols@0.0.3/types";
 
 import { cleanManifest, getManifest } from "./get_manifest.ts";
 import { validateManifestFunctions } from "./utilities.ts";

@@ -1,5 +1,5 @@
-import { assertEquals, assertRejects } from "../dev_deps.ts";
-import { mockFetch, mockFile } from "../dev_deps.ts";
+import { assertEquals, assertRejects, stub } from "../dev_deps.ts";
+import { mockFile } from "../dev_deps.ts";
 import {
   createFileErrorMsg,
   createUpdateResp,
@@ -29,16 +29,23 @@ const MOCK_DENO_JSON = JSON.stringify({
   "importMap": "import_map.json",
 });
 
-const MOCK_SLACK_JSON_FILE = new TextEncoder().encode(MOCK_HOOKS_JSON);
-const MOCK_DOT_SLACK_HOOKS_JSON_FILE = new TextEncoder().encode(
+// Returns any because Type 'Uint8Array' is a not generic in Deno 1
+// deno-lint-ignore no-explicit-any
+const encodeStringToUint8Array = (data: string): any => {
+  return new TextEncoder().encode(
+    data,
+  );
+};
+const MOCK_SLACK_JSON_FILE = encodeStringToUint8Array(MOCK_HOOKS_JSON);
+const MOCK_DOT_SLACK_HOOKS_JSON_FILE = encodeStringToUint8Array(
   MOCK_HOOKS_JSON,
 );
-const MOCK_IMPORT_MAP_FILE = new TextEncoder().encode(MOCK_IMPORTS_JSON);
-const MOCK_DENO_JSON_FILE = new TextEncoder().encode(MOCK_DENO_JSON);
-const MOCK_IMPORTS_IN_DENO_JSON_FILE = new TextEncoder().encode(
+const MOCK_IMPORT_MAP_FILE = encodeStringToUint8Array(MOCK_IMPORTS_JSON);
+const MOCK_DENO_JSON_FILE = encodeStringToUint8Array(MOCK_DENO_JSON);
+const MOCK_IMPORTS_IN_DENO_JSON_FILE = encodeStringToUint8Array(
   MOCK_IMPORTS_JSON,
 );
-const EMPTY_JSON_FILE = new TextEncoder().encode("{}");
+const EMPTY_JSON_FILE = encodeStringToUint8Array("{}");
 
 const setEmptyJsonFiles = () => {
   mockFile.prepareVirtualFile("./slack.json", EMPTY_JSON_FILE);
@@ -121,7 +128,7 @@ Deno.test("check-update hook tests", async (t) => {
         // Clear out deno.json file that's in memory from previous test(s)
         mockFile.prepareVirtualFile(
           "./deno.json",
-          new TextEncoder().encode(""),
+          encodeStringToUint8Array(""),
         );
 
         const cwd = Deno.cwd();
@@ -262,7 +269,21 @@ Deno.test("check-update hook tests", async (t) => {
 
   // fetchLatestModuleVersion
   await t.step("fetchLatestModuleVersion method", async (evT) => {
-    mockFetch.install(); // mock out calls to fetch
+    const stubMetadataJsonFetch = (response: Response) => {
+      return stub(
+        globalThis,
+        "fetch",
+        (url: string | URL | Request, options?: RequestInit) => {
+          const req = url instanceof Request ? url : new Request(url, options);
+          assertEquals(req.method, "GET");
+          assertEquals(
+            req.url,
+            "https://api.slack.com/slackcli/metadata.json",
+          );
+          return Promise.resolve(response);
+        },
+      );
+    };
 
     const mockMetadataJSON = JSON.stringify({
       "deno-slack-sdk": {
@@ -283,9 +304,9 @@ Deno.test("check-update hook tests", async (t) => {
     await evT.step(
       "should throw if module is not found",
       async () => {
-        mockFetch.mock("GET@/slackcli/metadata.json", (_req: Request) => {
-          return new Response(mockMetadataJSON);
-        });
+        using _fetchStub = stubMetadataJsonFetch(
+          new Response(mockMetadataJSON),
+        );
         await assertRejects(async () => {
           return await fetchLatestModuleVersion("non-existent-module");
         });
@@ -294,14 +315,13 @@ Deno.test("check-update hook tests", async (t) => {
     await evT.step(
       "should return latest module version from metadata.json",
       async () => {
-        mockFetch.mock("GET@/slackcli/metadata.json", (_req: Request) => {
-          return new Response(mockMetadataJSON);
-        });
+        using _fetchStub = stubMetadataJsonFetch(
+          new Response(mockMetadataJSON),
+        );
         const version = await fetchLatestModuleVersion("deno-slack-sdk");
         assertEquals(version, "1.3.0", "incorrect version returned");
       },
     );
-    mockFetch.uninstall();
   });
 
   // createUpdateResp

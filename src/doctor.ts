@@ -1,5 +1,5 @@
-import { getProtocolInterface } from "https://deno.land/x/deno_slack_protocols@0.0.2/mod.ts";
-import type { Protocol } from "https://deno.land/x/deno_slack_protocols@0.0.2/types.ts";
+import { getProtocolInterface } from "jsr:@slack/protocols@0.0.3";
+import type { Protocol } from "jsr:@slack/protocols@0.0.3/types";
 
 import { isNewSemverRelease } from "./utilities.ts";
 

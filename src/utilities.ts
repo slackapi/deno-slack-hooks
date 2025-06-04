@@ -12,7 +12,12 @@ export async function getJSON(file: string): Promise<JsonValue> {
     const fileContents = await Deno.readTextFile(file);
     return parseJSONC(fileContents);
   } catch (err) {
-    throw new Error(err.message, { cause: err });
+    if (err instanceof Error) {
+      throw new Error(err.message, { cause: err });
+    }
+    throw new Error(
+      `Caught non-Error value: ${String(err)} (type: ${typeof err})`,
+    );
   }
 }
 

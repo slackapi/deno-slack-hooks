@@ -2,9 +2,9 @@ import {
   assertEquals,
   assertSpyCall,
   assertSpyCalls,
-  mockFetch,
   MockProtocol,
   Spy,
+  stub,
 } from "../dev_deps.ts";
 import { getRuntimeVersions } from "../doctor.ts";
 
@@ -43,14 +43,27 @@ Deno.test("doctor hook tests", async (t) => {
     writable: true,
     configurable: true,
   });
-  mockFetch.install();
+  const stubMetadataJsonFetch = (response: Response) => {
+    return stub(
+      globalThis,
+      "fetch",
+      (url: string | URL | Request, options?: RequestInit) => {
+        const req = url instanceof Request ? url : new Request(url, options);
+        assertEquals(req.method, "GET");
+        assertEquals(
+          req.url,
+          "https://api.slack.com/slackcli/metadata.json",
+        );
+        return Promise.resolve(response);
+      },
+    );
+  };
 
   await t.step("known runtime values for the system are returned", async () => {
     const protocol = MockProtocol();
     const mockResponse = new Response(null, { status: 404 });
-    mockFetch.mock("GET@/slackcli/metadata.json", (_req: Request) => {
-      return mockResponse;
-    });
+    using _fetchStub = stubMetadataJsonFetch(mockResponse);
+
     Deno.version.deno = "1.2.3";
 
     const actual = await getRuntimeVersions(protocol);
@@ -82,9 +95,10 @@ Deno.test("doctor hook tests", async (t) => {
 
   await t.step("matched upstream requirements return success", async () => {
     const protocol = MockProtocol();
-    mockFetch.mock("GET@/slackcli/metadata.json", (_req: Request) => {
-      return new Response(JSON.stringify(MOCK_SLACK_CLI_MANIFEST));
-    });
+    using _fetchStub = stubMetadataJsonFetch(
+      new Response(JSON.stringify(MOCK_SLACK_CLI_MANIFEST)),
+    );
+
     Deno.version.deno = "1.101.1";
 
     const actual = await getRuntimeVersions(protocol);
@@ -110,9 +124,10 @@ Deno.test("doctor hook tests", async (t) => {
 
   await t.step("unsupported upstream runtimes note differences", async () => {
     const protocol = MockProtocol();
-    mockFetch.mock("GET@/slackcli/metadata.json", (_req: Request) => {
-      return new Response(JSON.stringify(MOCK_SLACK_CLI_MANIFEST));
-    });
+    using _fetchStub = stubMetadataJsonFetch(
+      new Response(JSON.stringify(MOCK_SLACK_CLI_MANIFEST)),
+    );
+
     Deno.version.deno = "1.2.3";
 
     const actual = await getRuntimeVersions(protocol);
@@ -145,9 +160,10 @@ Deno.test("doctor hook tests", async (t) => {
     const metadata = {
       runtimes: ["deno", "node"],
     };
-    mockFetch.mock("GET@/slackcli/metadata.json", (_req: Request) => {
-      return new Response(JSON.stringify(metadata));
-    });
+    using _fetchStub = stubMetadataJsonFetch(
+      new Response(JSON.stringify(metadata)),
+    );
+
     Deno.version.deno = "1.2.3";
 
     const actual = await getRuntimeVersions(protocol);
@@ -181,9 +197,9 @@ Deno.test("doctor hook tests", async (t) => {
 
   await t.step("invalid body in http responses are caught", async () => {
     const protocol = MockProtocol();
-    mockFetch.mock("GET@/slackcli/metadata.json", (_req: Request) => {
-      return new Response("{");
-    });
+    using _fetchStub = stubMetadataJsonFetch(
+      new Response("{"),
+    );
     Deno.version.deno = "2.2.2";
 
     const actual = await getRuntimeVersions(protocol);
@@ -217,5 +233,4 @@ Deno.test("doctor hook tests", async (t) => {
     writable: false,
     configurable: false,
   });
-  mockFetch.uninstall();
 });

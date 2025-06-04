@@ -52,16 +52,23 @@ const MOCK_DENO_JSON = JSON.stringify({
   "importMap": "import_map.json",
 });
 
-const MOCK_SLACK_JSON_FILE = new TextEncoder().encode(MOCK_HOOKS_JSON);
-const MOCK_DOT_SLACK_HOOKS_JSON_FILE = new TextEncoder().encode(
+// Returns any because Type 'Uint8Array' is a not generic in Deno 1
+// deno-lint-ignore no-explicit-any
+const encodeStringToUint8Array = (data: string): any => {
+  return new TextEncoder().encode(
+    data,
+  );
+};
+const MOCK_SLACK_JSON_FILE = encodeStringToUint8Array(MOCK_HOOKS_JSON);
+const MOCK_DOT_SLACK_HOOKS_JSON_FILE = encodeStringToUint8Array(
   MOCK_HOOKS_JSON,
 );
-const MOCK_IMPORT_MAP_FILE = new TextEncoder().encode(MOCK_IMPORTS_JSON);
-const MOCK_DENO_JSON_FILE = new TextEncoder().encode(MOCK_DENO_JSON);
-const MOCK_IMPORTS_IN_DENO_JSON_FILE = new TextEncoder().encode(
+const MOCK_IMPORT_MAP_FILE = encodeStringToUint8Array(MOCK_IMPORTS_JSON);
+const MOCK_DENO_JSON_FILE = encodeStringToUint8Array(MOCK_DENO_JSON);
+const MOCK_IMPORTS_IN_DENO_JSON_FILE = encodeStringToUint8Array(
   MOCK_IMPORTS_JSON,
 );
-const EMPTY_JSON_FILE = new TextEncoder().encode("{}");
+const EMPTY_JSON_FILE = encodeStringToUint8Array("{}");
 
 const setEmptyJsonFiles = () => {
   mockFile.prepareVirtualFile("./slack.json", EMPTY_JSON_FILE);
