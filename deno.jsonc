@@ -12,7 +12,10 @@
   },
   "lint": {
     "include": ["src"],
-    "exclude": ["src/tests/fixtures"]
+    "exclude": ["src/tests/fixtures"],
+    "rules": {
+      "exclude": ["no-import-prefix"]
+    }
   },
   "test": {
     "include": ["src"],
