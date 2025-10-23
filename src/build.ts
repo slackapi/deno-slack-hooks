@@ -6,7 +6,7 @@ import type { Protocol } from "jsr:@slack/protocols@0.0.3/types";
 
 import { cleanManifest, getManifest } from "./get_manifest.ts";
 import { validateManifestFunctions } from "./utilities.ts";
-import { DenoBundler, EsbuildBundler } from "./bundler/mods.ts";
+import { Deno2Bundler, DenoBundler, EsbuildBundler } from "./bundler/mods.ts";
 import { BundleError } from "./errors.ts";
 
 export const validateAndCreateFunctions = async (
@@ -62,7 +62,7 @@ async function resolveDenoConfigPath(
     }
   }
   throw new Error(
-    `Could not find a deno.json or deno.jsonc file in the current directory.`,
+    "Could not find a deno.json or deno.jsonc file in the current directory.",
   );
 }
 
@@ -77,29 +77,48 @@ const createFunctionFile = async (
   const fnBundledPath = path.join(outputDirectory, fnFileRelative);
 
   try {
+    // TODO: Remove this try/catch block once Deno 1.x is no longer supported
     await DenoBundler.bundle({
       entrypoint: fnFilePath,
       outFile: fnBundledPath,
     });
+    return;
   } catch (denoBundleErr) {
     if (!(denoBundleErr instanceof BundleError)) {
-      protocol.error(`Error bundling function file "${fnId}" with Deno`);
+      protocol.error(`Failed to bundle function "${fnId}" using Deno bundler`);
       throw denoBundleErr;
     }
+    // TODO: once Protocol can handle debug add a debug statement for the error
+  }
 
-    // TODO: once Protocol can handle debug add a debug statement here
-
-    try {
-      const bundle = await EsbuildBundler.bundle({
-        entrypoint: fnFilePath,
-        absWorkingDir: workingDirectory,
-        configPath: await resolveDenoConfigPath(workingDirectory),
-      });
-      await Deno.writeFile(fnBundledPath, bundle);
-    } catch (esbuildError) {
-      protocol.error(`Error bundling function file "${fnId}" with esbuild`);
-      throw esbuildError;
+  try {
+    await Deno2Bundler.bundle({
+      entrypoint: fnFilePath,
+      outFile: fnBundledPath,
+    });
+    return;
+  } catch (denoBundleErr) {
+    if (!(denoBundleErr instanceof BundleError)) {
+      protocol.error(
+        `Failed to bundle function "${fnId}" using Deno2 bundler`,
+      );
+      throw denoBundleErr;
     }
+    // TODO: once Protocol can handle debug add a debug statement for the error
+  }
+
+  try {
+    const bundle = await EsbuildBundler.bundle({
+      entrypoint: fnFilePath,
+      absWorkingDir: workingDirectory,
+      configPath: await resolveDenoConfigPath(workingDirectory),
+    });
+    await Deno.writeFile(fnBundledPath, bundle);
+  } catch (esbuildError) {
+    protocol.error(
+      `Failed to bundle function "${fnId}": Attempt with Deno bundle and esbuild - all failed`,
+    );
+    throw esbuildError;
   }
 };
 

@@ -1,5 +1,5 @@
 import { validateAndCreateFunctions } from "../build.ts";
-import { DenoBundler, EsbuildBundler } from "../bundler/mods.ts";
+import { Deno2Bundler, DenoBundler, EsbuildBundler } from "../bundler/mods.ts";
 import {
   assertExists,
   assertRejects,
@@ -72,7 +72,60 @@ Deno.test("build hook tests", async (t) => {
         } as Deno.Command;
 
         // Stub out call to `Deno.Command` and fake return a success
-        const commandStub = stub(
+        const denoBundlerCommandStub = stub(
+          Deno,
+          "Command",
+          () => commandResp,
+        );
+
+        const deno2BundleCommandStub = spy(
+          Deno2Bundler,
+          "bundle",
+        );
+
+        const esbuildBundlerSpy = spy(
+          EsbuildBundler,
+          "bundle",
+        );
+
+        try {
+          await validateAndCreateFunctions(
+            Deno.cwd(),
+            outputDir,
+            validManifest,
+            protocol,
+          );
+          assertSpyCalls(denoBundlerCommandStub, 2);
+          assertSpyCalls(deno2BundleCommandStub, 0);
+          assertSpyCalls(esbuildBundlerSpy, 0);
+        } finally {
+          denoBundlerCommandStub.restore();
+          deno2BundleCommandStub.restore();
+          esbuildBundlerSpy.restore();
+        }
+      },
+    );
+
+    await tt.step(
+      "should invoke `deno2 bundle` once per non-API function if bundle fails",
+      async () => {
+        const protocol = MockProtocol();
+        const outputDir = await Deno.makeTempDir();
+
+        const commandResp = {
+          output: () => Promise.resolve({ code: 0 }),
+        } as Deno.Command;
+
+        const denoBundlerCommandStub = stub(
+          DenoBundler,
+          "bundle",
+          () => {
+            throw new BundleError();
+          },
+        );
+
+        // Stub out call to `Deno.Command` and fake return a success
+        const deno2BundleCommandStub = stub(
           Deno,
           "Command",
           () => commandResp,
@@ -90,25 +143,34 @@ Deno.test("build hook tests", async (t) => {
             validManifest,
             protocol,
           );
-          assertSpyCalls(commandStub, 2);
+          assertSpyCalls(denoBundlerCommandStub, 2);
+          assertSpyCalls(deno2BundleCommandStub, 2);
           assertSpyCalls(esbuildBundlerSpy, 0);
         } finally {
-          commandStub.restore();
+          denoBundlerCommandStub.restore();
+          deno2BundleCommandStub.restore();
           esbuildBundlerSpy.restore();
         }
       },
     );
 
     await tt.step(
-      "should invoke `esbuild` once per non-API function if bundle fails",
+      "should invoke `esbuild` once per non-API function if deno1 and deno2 bundle fails",
       async () => {
         const protocol = MockProtocol();
 
         const outputDir = await Deno.makeTempDir();
 
-        // Stub out call to `Deno.Command` and fake throw error
-        const commandStub = stub(
+        const denoBundleCommandStub = stub(
           DenoBundler,
+          "bundle",
+          () => {
+            throw new BundleError();
+          },
+        );
+
+        const deno2BundleCommandStub = stub(
+          Deno2Bundler,
           "bundle",
           () => {
             throw new BundleError();
@@ -129,10 +191,12 @@ Deno.test("build hook tests", async (t) => {
             validManifest,
             protocol,
           );
-          assertSpyCalls(commandStub, 2);
+          assertSpyCalls(denoBundleCommandStub, 2);
+          assertSpyCalls(deno2BundleCommandStub, 2);
           assertSpyCalls(writeFileStub, 2);
         } finally {
-          commandStub.restore();
+          denoBundleCommandStub.restore();
+          deno2BundleCommandStub.restore();
           writeFileStub.restore();
         }
       },
@@ -145,7 +209,7 @@ Deno.test("build hook tests", async (t) => {
         const outputDir = await Deno.makeTempDir();
 
         // Stub out call to `Deno.Command` and fake throw error
-        const commandStub = stub(
+        const denoBundleCommandStub = stub(
           DenoBundler,
           "bundle",
           () => {
@@ -153,10 +217,15 @@ Deno.test("build hook tests", async (t) => {
           },
         );
 
-        // Spy on `Deno.writeFile`
-        const writeFileStub = spy(
-          Deno,
-          "writeFile",
+        // Stub out call to `Deno.Command` and fake throw error
+        const deno2BundleCommandStub = spy(
+          Deno2Bundler,
+          "bundle",
+        );
+
+        const esbuildBundlerSpy = spy(
+          EsbuildBundler,
+          "bundle",
         );
 
         try {
@@ -171,11 +240,65 @@ Deno.test("build hook tests", async (t) => {
             Error,
             "something was unexpected",
           );
-          assertSpyCalls(commandStub, 1);
-          assertSpyCalls(writeFileStub, 0);
+          assertSpyCalls(denoBundleCommandStub, 1);
+          assertSpyCalls(deno2BundleCommandStub, 0);
+          assertSpyCalls(esbuildBundlerSpy, 0);
         } finally {
-          commandStub.restore();
-          writeFileStub.restore();
+          denoBundleCommandStub.restore();
+          deno2BundleCommandStub.restore();
+          esbuildBundlerSpy.restore();
+        }
+      },
+    );
+
+    await tt.step(
+      "should throw an exception if `Deno2Bundler.bundle` fails unexpectedly",
+      async () => {
+        const protocol = MockProtocol();
+        const outputDir = await Deno.makeTempDir();
+
+        // Stub out call to `Deno.Command` and fake throw error
+        const denoBundleCommandStub = stub(
+          DenoBundler,
+          "bundle",
+          () => {
+            throw new BundleError();
+          },
+        );
+
+        // Stub out call to `Deno.Command` and fake throw error
+        const deno2BundleCommandStub = stub(
+          Deno2Bundler,
+          "bundle",
+          () => {
+            throw new Error("something was unexpected");
+          },
+        );
+
+        const esbuildBundlerSpy = spy(
+          EsbuildBundler,
+          "bundle",
+        );
+
+        try {
+          await assertRejects(
+            () =>
+              validateAndCreateFunctions(
+                Deno.cwd(),
+                outputDir,
+                validManifest,
+                protocol,
+              ),
+            Error,
+            "something was unexpected",
+          );
+          assertSpyCalls(denoBundleCommandStub, 1);
+          assertSpyCalls(deno2BundleCommandStub, 1);
+          assertSpyCalls(esbuildBundlerSpy, 0);
+        } finally {
+          denoBundleCommandStub.restore();
+          deno2BundleCommandStub.restore();
+          esbuildBundlerSpy.restore();
         }
       },
     );
