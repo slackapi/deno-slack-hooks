@@ -7,12 +7,7 @@ type DenoBundleOptions = {
   outFile: string;
 };
 
-/**
- * @deprecated This bundler only works with Deno 1.x versions. For Deno 2.x and newer,
- * use the Deno2Bundler or EsbuildBundler instead.
- */
-
-export const DenoBundler = {
+export const Deno2Bundler = {
   bundle: async (options: DenoBundleOptions): Promise<void> => {
     // call out to deno to handle bundling
     const command = new Deno.Command(Deno.execPath(), {
@@ -20,6 +15,7 @@ export const DenoBundler = {
         "bundle",
         "--quiet",
         options.entrypoint,
+        "--output",
         options.outFile,
       ],
     });

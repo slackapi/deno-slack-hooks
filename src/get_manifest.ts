@@ -115,7 +115,7 @@ async function readImportedManifestFile(filename: string) {
 
   // `getDefaultExport` will throw if no default export present
   const manifest = await getDefaultExport(filename);
-  if (typeof manifest != "object") {
+  if (typeof manifest !== "object") {
     throw new Error(
       `Manifest file: ${filename} default export is not an object!`,
     );
